@@ -47,6 +47,7 @@ export function emptyRig() {
     springBones: [],
     colliders: [],
     blendSpaces: [],
+    previewGround: { bone: '', floor: true },
   };
 }
 
@@ -293,6 +294,11 @@ export function normalizeRig(raw) {
     radius: Number(c.radius) > 0 ? Number(c.radius) : 2,
   }));
 
+  base.previewGround = {
+    bone: typeof raw.previewGround?.bone === 'string' ? raw.previewGround.bone : '',
+    floor: raw.previewGround?.floor !== false,
+  };
+
   base.blendSpaces = list(raw.blendSpaces).map(b => ({
     ...newBlendSpace(b.name || 'blend'),
     ...b,
@@ -423,6 +429,26 @@ export function validateRig(rig = RigStore.rig) {
     for (const id of s.colliders || []) {
       const c = (rig.colliders || []).find(x => x.id === id);
       if (c && s.bones.includes(c.bone)) issues.push(`Spring bone "${s.id}": collider "${id}" is on one of its own bones, so the chain would always be pushed by itself.`);
+    }
+  }
+
+  const groundName = rig.previewGround?.bone;
+  if (groundName) {
+    const ground = findBone(groundName);
+    if (!ground) {
+      issues.push(`Preview ground bone "${groundName}" doesn't exist.`);
+    } else {
+      if (ground.parent && ground.parent !== 'root') issues.push(`Preview ground bone "${groundName}" is inside "${ground.parent.name}"; move it to the root so animations can't move the ground.`);
+      const used = new Set([
+        ...rig.ikChains.flatMap(c => c.bones), ...rig.lookAts.flatMap(l => l.bones), ...rig.springBones.flatMap(s => s.bones),
+        ...rig.hitboxes.map(h => h.bone), ...rig.sockets.map(s => s.bone).filter(Boolean), ...(rig.colliders || []).map(c => c.bone),
+      ]);
+      for (const name of used) {
+        const bone = findBone(name);
+        if (bone && (bone === ground || isDescendant(bone, ground))) {
+          issues.push(`Bone "${name}" is in the preview ground "${groundName}", which isn't exported; move it out of the ground bone.`);
+        }
+      }
     }
   }
 

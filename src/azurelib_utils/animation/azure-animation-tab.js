@@ -25,6 +25,13 @@ import {
   registerPlayBehaviors,
   unregisterPlayBehaviors,
 } from './azure-playback.js';
+import {
+  writePoseWeightsJson,
+  readPoseWeightsJson,
+  isPoseWeightAnimator,
+  registerPoseWeights,
+  unregisterPoseWeights,
+} from './azure-pose-weights.js';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -365,7 +372,7 @@ function serializeAnimation(anim) {
 
   const bones = {};
   const effects = anim.animators.effects;
-  const boneAnimators = Object.values(anim.animators).filter(a => a instanceof BoneAnimator);
+  const boneAnimators = Object.values(anim.animators).filter(a => a instanceof BoneAnimator && !isPoseWeightAnimator(a));
 
   for (const boneAnim of boneAnimators) {
     const boneName = boneAnim.name;
@@ -410,6 +417,8 @@ function serializeAnimation(anim) {
   }
 
   if (Object.keys(bones).length) obj.bones = bones;
+
+  writePoseWeightsJson(anim, obj, { orderedMap, normTime, roundTime });
 
   // Effects (sound/particle/timeline)
   if (effects && Array.isArray(effects.keyframes) && effects.keyframes.length) {
@@ -686,6 +695,8 @@ function parseAnimation(name, src, filePath) {
       }
     }
   }
+
+  readPoseWeightsJson(anim, src);
 
   anim.calculateSnappingFromKeyframes?.();
   if (!Animation.selected && Animator.open) anim.select();
@@ -1387,6 +1398,7 @@ export function registerAzureAnimationFormat() {
 
   patchExportAnimationAction();
   registerPlayBehaviors();
+  registerPoseWeights();
 
   if (!editAnimationIncludesAction) {
     editAnimationIncludesAction = new Action('azl_edit_animation_includes', {
@@ -1418,6 +1430,7 @@ export function unregisterAzureAnimationFormat() {
 
   unpatchExportAnimationAction();
   unregisterPlayBehaviors();
+  unregisterPoseWeights();
 
   editAnimationIncludesAction?.delete();
   editAnimationIncludesAction = null;

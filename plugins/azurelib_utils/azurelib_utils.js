@@ -1099,194 +1099,7 @@ module.exports = isFunction;
 
 /***/ }),
 
-/***/ 1961:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var cloneArrayBuffer = __webpack_require__(9653);
-
-/**
- * Creates a clone of `typedArray`.
- *
- * @private
- * @param {Object} typedArray The typed array to clone.
- * @param {boolean} [isDeep] Specify a deep clone.
- * @returns {Object} Returns the cloned typed array.
- */
-function cloneTypedArray(typedArray, isDeep) {
-  var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
-  return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
-}
-
-module.exports = cloneTypedArray;
-
-
-/***/ }),
-
-/***/ 2032:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var nativeCreate = __webpack_require__(1042);
-
-/**
- * Removes all key-value entries from the hash.
- *
- * @private
- * @name clear
- * @memberOf Hash
- */
-function hashClear() {
-  this.__data__ = nativeCreate ? nativeCreate(null) : {};
-  this.size = 0;
-}
-
-module.exports = hashClear;
-
-
-/***/ }),
-
-/***/ 2111:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-const eq = __webpack_require__(4641)
-const neq = __webpack_require__(3999)
-const gt = __webpack_require__(5580)
-const gte = __webpack_require__(4089)
-const lt = __webpack_require__(7059)
-const lte = __webpack_require__(5200)
-
-const cmp = (a, op, b, loose) => {
-  switch (op) {
-    case '===':
-      if (typeof a === 'object') {
-        a = a.version
-      }
-      if (typeof b === 'object') {
-        b = b.version
-      }
-      return a === b
-
-    case '!==':
-      if (typeof a === 'object') {
-        a = a.version
-      }
-      if (typeof b === 'object') {
-        b = b.version
-      }
-      return a !== b
-
-    case '':
-    case '=':
-    case '==':
-      return eq(a, b, loose)
-
-    case '!=':
-      return neq(a, b, loose)
-
-    case '>':
-      return gt(a, b, loose)
-
-    case '>=':
-      return gte(a, b, loose)
-
-    case '<':
-      return lt(a, b, loose)
-
-    case '<=':
-      return lte(a, b, loose)
-
-    default:
-      throw new TypeError(`Invalid operator: ${op}`)
-  }
-}
-module.exports = cmp
-
-
-/***/ }),
-
-/***/ 2199:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var arrayPush = __webpack_require__(4528),
-    isArray = __webpack_require__(6449);
-
-/**
- * The base implementation of `getAllKeys` and `getAllKeysIn` which uses
- * `keysFunc` and `symbolsFunc` to get the enumerable property names and
- * symbols of `object`.
- *
- * @private
- * @param {Object} object The object to query.
- * @param {Function} keysFunc The function to get the keys of `object`.
- * @param {Function} symbolsFunc The function to get the symbols of `object`.
- * @returns {Array} Returns the array of property names and symbols.
- */
-function baseGetAllKeys(object, keysFunc, symbolsFunc) {
-  var result = keysFunc(object);
-  return isArray(object) ? result : arrayPush(result, symbolsFunc(object));
-}
-
-module.exports = baseGetAllKeys;
-
-
-/***/ }),
-
-/***/ 2224:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var memoize = __webpack_require__(104);
-
-/** Used as the maximum memoize cache size. */
-var MAX_MEMOIZE_SIZE = 500;
-
-/**
- * A specialized version of `_.memoize` which clears the memoized function's
- * cache when it exceeds `MAX_MEMOIZE_SIZE`.
- *
- * @private
- * @param {Function} func The function to have its output memoized.
- * @returns {Function} Returns the new memoized function.
- */
-function memoizeCapped(func) {
-  var result = memoize(func, function(key) {
-    if (cache.size === MAX_MEMOIZE_SIZE) {
-      cache.clear();
-    }
-    return key;
-  });
-
-  var cache = result.cache;
-  return result;
-}
-
-module.exports = memoizeCapped;
-
-
-/***/ }),
-
-/***/ 2271:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var copyObject = __webpack_require__(1791),
-    getSymbols = __webpack_require__(4664);
-
-/**
- * Copies own symbols of `source` to `object`.
- *
- * @private
- * @param {Object} source The object to copy symbols from.
- * @param {Object} [object={}] The object to copy symbols to.
- * @returns {Object} Returns `object`.
- */
-function copySymbols(source, object) {
-  return copyObject(source, getSymbols(source), object);
-}
-
-module.exports = copySymbols;
-
-
-/***/ }),
-
-/***/ 2341:
+/***/ 1910:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1306,7 +1119,7 @@ var coerce_default = /*#__PURE__*/__webpack_require__.n(coerce);
 var satisfies = __webpack_require__(7638);
 var satisfies_default = /*#__PURE__*/__webpack_require__.n(satisfies);
 ;// ./package.json
-const package_namespaceObject = /*#__PURE__*/JSON.parse('{"rE":"2.3.0","Ug":{"title":"AzureLib Animator","author":"AzureDoom, Eliot Lash, Gecko, McHorse","icon":"azureicon.png","description":"Create models, textures, and animations for AzureLib-powered mods using Bedrock-style tools.","min_version":"4.8.0","max_version":"15.0.0","new_repository_format":true,"await_loading":true,"variant":"both","creation_date":"2023-04-04","contributes":{"formats":["azure_model"]},"has_changelog":true,"website":"https://wiki.azuredoom.com/","tags":["Minecraft: Java Edition"]}}');
+const package_namespaceObject = /*#__PURE__*/JSON.parse('{"rE":"2.3.1","Ug":{"title":"AzureLib Animator","author":"AzureDoom, Eliot Lash, Gecko, McHorse","icon":"azureicon.png","description":"Create models, textures, and animations for AzureLib-powered mods using Bedrock-style tools.","min_version":"4.8.0","max_version":"15.0.0","new_repository_format":true,"await_loading":true,"variant":"both","creation_date":"2023-04-04","contributes":{"formats":["azure_model"]},"has_changelog":true,"website":"https://wiki.azuredoom.com/","tags":["Minecraft: Java Edition"]}}');
 // EXTERNAL MODULE: ./node_modules/lodash/lodash.js
 var lodash = __webpack_require__(2543);
 ;// ./animation/azure-easing.js
@@ -3233,6 +3046,1202 @@ function unregisterPlayBehaviors() {
   properties = [];
 }
 
+;// ./rig/azure-rig-state.js
+/**
+ * AzureLib Animator — Rig Definitions
+ * ------------------------------------
+ * Project-persisted definitions for AzureLib's runtime rig features:
+ * bone hitboxes, bone sockets, IK chains, look-at chains, bone constraints,
+ * spring bones and blend spaces.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+const RIG_VERSION = 1;
+
+const HITBOX_ROLES = ['COMBAT', 'INTERACT', 'ANCHOR'];
+
+const IK_TARGETS = {
+  bone: 'Animated bone',
+  ground: 'Ground (foot placement)',
+  entity_eyes: 'Another entity\'s eyes',
+  world: 'World position (code)',
+  model: 'Fixed model point',
+};
+
+const IK_SOLVERS = {
+  auto: 'Auto (two-bone for 2–3 bones, else CCD)',
+  two_bone: 'Two-bone',
+  ccd: 'CCD',
+};
+
+const CONSTRAINT_TYPES = {
+  limit: 'Limit (all axes)',
+  hinge_x: 'Hinge X',
+  hinge_y: 'Hinge Y',
+  hinge_z: 'Hinge Z',
+};
+
+/** A fresh, empty rig. */
+function emptyRig() {
+  return {
+    version: RIG_VERSION,
+    codegen: { target: 'v1_21_1', entityClass: 'ExampleEntity', packageRoot: '' },
+    hitboxOptions: { keepEntityBox: false, clientOnly: false },
+    hitboxes: [],
+    sockets: [],
+    ikChains: [],
+    lookAts: [],
+    constraints: [],
+    springBones: [],
+    colliders: [],
+    blendSpaces: [],
+    previewGround: { bone: '', floor: true },
+  };
+}
+
+function newHitbox(bone) {
+  return {
+    name: bone,
+    bone,
+    role: 'COMBAT',
+    fit: true,
+    size: [4, 4, 4],
+    offset: [0, 0, 0],
+    inflate: 0,
+    anchorAtPivot: false,
+    damageMultiplier: 1,
+    tags: [],
+  };
+}
+
+function newSocket(name, { bone = null, locator = null } = {}) {
+  return {
+    name,
+    bone,
+    locator,
+    offset: [0, 0, 0],
+    rotation: [0, 0, 0],
+    serverHitbox: '',
+  };
+}
+
+function newIkChain(id, bones) {
+  return {
+    id,
+    bones,
+    effector: [0, 0, 0],
+    solver: 'auto',
+    pole: null,
+    iterations: 10,
+    tolerance: 0.1,
+    target: { type: 'ground', stepUp: 0.5, stepDown: 0.75, point: [0, 0, 0], bone: '' },
+    priority: 50,
+    weight: 1,
+    preview: { enabled: true, mode: 'ground', groundHeight: 0, locator: '', point: [0, 0, -16] },
+  };
+}
+
+function newLookAt(id, bones) {
+  return {
+    id,
+    bones,
+    forward: [0, 0, -1],
+    target: { type: 'entity_eyes', point: [0, 0, 0], bone: '' },
+    priority: 40,
+    weight: 1,
+    preview: { enabled: true, mode: 'point', locator: '', point: [0, 24, -32] },
+  };
+}
+
+function newConstraint(bone) {
+  return {
+    bone,
+    type: 'limit',
+    min: [-45, -45, -45],
+    max: [45, 45, 45],
+    standalone: false,
+  };
+}
+
+function newSpringBone(id, bones) {
+  return {
+    id,
+    bones,
+    tip: null,
+    stiffness: 0.2,
+    damping: 0.25,
+    gravity: 0,
+    inertia: 1,
+    priority: 200,
+    colliders: [],
+    radius: 0,
+    ground: false,
+    preview: { enabled: true },
+  };
+}
+
+/** A spring collider; positions are pixels from the bone's pivot along its axes, as for sockets. */
+function newCollider(id, bone) {
+  return {
+    id,
+    bone,
+    shape: 'sphere',
+    start: [0, 0, 0],
+    end: [0, 0, 0],
+    radius: 2,
+  };
+}
+
+function newBlendSpace(name) {
+  return {
+    name,
+    dimensions: 1,
+    input: { x: 'speed', y: 'forward' },
+    samples: [],
+    smoothing: 0,
+    syncPhase: true,
+  };
+}
+
+const listeners = new Set();
+
+const RigStore = {
+  rig: emptyRig(),
+
+  onChange(fn) {
+    listeners.add(fn);
+    return () => listeners.delete(fn);
+  },
+
+  notify() {
+    for (const fn of listeners) {
+      try { fn(this.rig); } catch (e) { console.error('[AzureLib Rig] listener failed', e); }
+    }
+  },
+
+  set(rig) {
+    this.rig = normalizeRig(rig);
+    this.notify();
+  },
+
+  reset() {
+    this.set(emptyRig());
+  },
+
+  snapshot() {
+    return JSON.parse(JSON.stringify(this.rig));
+  },
+
+  edit(name, mutate) {
+    const before = this.snapshot();
+    mutate(this.rig);
+    const after = this.snapshot();
+
+    if (JSON.stringify(before) === JSON.stringify(after)) return;
+
+    try {
+      Undo.initEdit({});
+      Undo.finishEdit(`AzureLib Rig: ${name}`);
+      const entry = Undo.history?.[Undo.index - 1];
+      if (entry) undoSnapshots.set(entry, { before, after });
+    } catch (e) {
+      console.warn('[AzureLib Rig] Could not record undo step', e);
+    }
+
+    if (typeof Project !== 'undefined' && Project) Project.saved = false;
+    this.notify();
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Normalisation: tolerate older or hand-edited data
+// ---------------------------------------------------------------------------
+
+function vec3(value, fallback) {
+  if (!Array.isArray(value) || value.length < 3) return fallback.slice();
+  return [0, 1, 2].map(i => (Number.isFinite(Number(value[i])) ? Number(value[i]) : fallback[i]));
+}
+
+function list(value) {
+  return Array.isArray(value) ? value.filter(v => v && typeof v === 'object') : [];
+}
+
+function normalizeRig(raw) {
+  const base = emptyRig();
+  if (!raw || typeof raw !== 'object') return base;
+
+  base.codegen = { ...base.codegen, ...(raw.codegen || {}) };
+  if (base.codegen.target === 'modern') base.codegen.target = 'v1_21_1';
+  base.hitboxOptions = { ...base.hitboxOptions, ...(raw.hitboxOptions || {}) };
+
+  base.hitboxes = list(raw.hitboxes).map(h => ({
+    ...newHitbox(h.bone || ''),
+    ...h,
+    size: vec3(h.size, [4, 4, 4]),
+    offset: vec3(h.offset, [0, 0, 0]),
+    tags: Array.isArray(h.tags) ? h.tags.map(String) : [],
+    role: HITBOX_ROLES.includes(h.role) ? h.role : 'COMBAT',
+  }));
+
+  base.sockets = list(raw.sockets).map(s => ({
+    ...newSocket(s.name || 'socket'),
+    ...s,
+    offset: vec3(s.offset, [0, 0, 0]),
+    rotation: vec3(s.rotation, [0, 0, 0]),
+  }));
+
+  base.ikChains = list(raw.ikChains).map(c => {
+    const d = newIkChain(c.id || 'ik', Array.isArray(c.bones) ? c.bones : []);
+    return {
+      ...d,
+      ...c,
+      effector: vec3(c.effector, [0, 0, 0]),
+      pole: Array.isArray(c.pole) ? vec3(c.pole, [0, 0, 0]) : null,
+      target: { ...d.target, ...(c.target || {}), point: vec3(c.target?.point, [0, 0, 0]) },
+      preview: { ...d.preview, ...(c.preview || {}), point: vec3(c.preview?.point, d.preview.point) },
+    };
+  });
+
+  base.lookAts = list(raw.lookAts).map(l => {
+    const d = newLookAt(l.id || 'look', Array.isArray(l.bones) ? l.bones : []);
+    return {
+      ...d,
+      ...l,
+      forward: vec3(l.forward, [0, 0, -1]),
+      target: { ...d.target, ...(l.target || {}), point: vec3(l.target?.point, [0, 0, 0]) },
+      preview: { ...d.preview, ...(l.preview || {}), point: vec3(l.preview?.point, d.preview.point) },
+    };
+  });
+
+  base.constraints = list(raw.constraints).map(c => ({
+    ...newConstraint(c.bone || ''),
+    ...c,
+    min: vec3(c.min, [-45, -45, -45]),
+    max: vec3(c.max, [45, 45, 45]),
+  }));
+
+  base.springBones = list(raw.springBones).map(s => {
+    const d = newSpringBone(s.id || 'spring', Array.isArray(s.bones) ? s.bones : []);
+    return {
+      ...d,
+      ...s,
+      tip: Array.isArray(s.tip) ? vec3(s.tip, [0, 0, 0]) : null,
+      colliders: Array.isArray(s.colliders) ? s.colliders.map(String) : [],
+      radius: Math.max(0, Number(s.radius) || 0),
+      ground: !!s.ground,
+      preview: { ...d.preview, ...(s.preview || {}) },
+    };
+  });
+
+  base.colliders = list(raw.colliders).map(c => ({
+    ...newCollider(c.id || 'collider', c.bone || ''),
+    ...c,
+    shape: c.shape === 'capsule' ? 'capsule' : 'sphere',
+    start: vec3(c.start, [0, 0, 0]),
+    end: vec3(c.end, [0, 0, 0]),
+    radius: Number(c.radius) > 0 ? Number(c.radius) : 2,
+  }));
+
+  base.previewGround = {
+    bone: typeof raw.previewGround?.bone === 'string' ? raw.previewGround.bone : '',
+    floor: raw.previewGround?.floor !== false,
+  };
+
+  base.blendSpaces = list(raw.blendSpaces).map(b => ({
+    ...newBlendSpace(b.name || 'blend'),
+    ...b,
+    input: { x: 'speed', y: 'forward', ...(b.input || {}) },
+    samples: list(b.samples).map(s => ({
+      x: Number(s.x) || 0,
+      y: Number(s.y) || 0,
+      animation: String(s.animation || ''),
+    })),
+  }));
+
+  return base;
+}
+
+function boneNames() {
+  return (typeof Group !== 'undefined' ? Group.all : []).map(g => g.name);
+}
+
+function locatorNames() {
+  return (typeof Locator !== 'undefined' ? Locator.all : []).map(l => l.name);
+}
+
+function findBone(name) {
+  return (typeof Group !== 'undefined' ? Group.all : []).find(g => g.name === name) || null;
+}
+
+function isDescendant(child, ancestor) {
+  for (let node = child?.parent; node && node !== 'root'; node = node.parent) {
+    if (node === ancestor) return true;
+  }
+  return false;
+}
+
+function validateRig(rig = RigStore.rig) {
+  const issues = [];
+  const bones = new Set(boneNames());
+  const locators = new Set(locatorNames());
+
+  const checkChain = (kind, id, names) => {
+    if (!names.length) {
+      issues.push(`${kind} "${id}" has no bones.`);
+      return;
+    }
+    for (const n of names) {
+      if (!bones.has(n)) issues.push(`${kind} "${id}": bone "${n}" doesn't exist.`);
+    }
+    for (let i = 1; i < names.length; i++) {
+      const parent = findBone(names[i - 1]);
+      const child = findBone(names[i]);
+      if (parent && child && !isDescendant(child, parent)) {
+        issues.push(`${kind} "${id}": "${names[i]}" isn't under "${names[i - 1]}"; list bones root first, each inside the one before.`);
+      }
+    }
+  };
+
+  const seenHitboxes = new Set();
+  for (const h of rig.hitboxes) {
+    if (!bones.has(h.bone)) issues.push(`Hitbox "${h.name}": bone "${h.bone}" doesn't exist.`);
+    if (seenHitboxes.has(h.name)) issues.push(`Hitbox name "${h.name}" is used twice.`);
+    seenHitboxes.add(h.name);
+    if (!h.fit && h.size.every(v => !v) && !h.inflate) issues.push(`Hitbox "${h.name}" has no size.`);
+    if (h.fit) {
+      const bone = findBone(h.bone);
+      const hasCubes = bone?.children?.some(c => typeof Cube !== 'undefined' && c instanceof Cube);
+      if (bone && !hasCubes) issues.push(`Hitbox "${h.name}" fits bone "${h.bone}", which has no cubes of its own; give it a size.`);
+    }
+  }
+
+  const seenSockets = new Set();
+  for (const s of rig.sockets) {
+    if (seenSockets.has(s.name)) issues.push(`Socket name "${s.name}" is used twice.`);
+    seenSockets.add(s.name);
+    if (s.locator && !locators.has(s.locator)) issues.push(`Socket "${s.name}": locator "${s.locator}" doesn't exist.`);
+    if (!s.locator && !bones.has(s.bone)) issues.push(`Socket "${s.name}": bone "${s.bone}" doesn't exist.`);
+    if (s.serverHitbox && s.locator) issues.push(`Socket "${s.name}" follows a locator, so its server hitbox must be added by hand (toAnchorHitbox() only works for bone sockets).`);
+  }
+
+  const locatorCounts = {};
+  for (const l of locatorNames()) locatorCounts[l] = (locatorCounts[l] || 0) + 1;
+  for (const [name, count] of Object.entries(locatorCounts)) {
+    if (count > 1) issues.push(`Locator name "${name}" is used ${count} times; AzureLib resolves the first one it finds.`);
+  }
+
+  const checkBoneTarget = (kind, id, target, chainBones) => {
+    if (target?.type !== 'bone') return;
+    if (!target.bone) {
+      issues.push(`${kind} "${id}": pick the bone to follow.`);
+      return;
+    }
+    if (!bones.has(target.bone)) {
+      issues.push(`${kind} "${id}": target bone "${target.bone}" doesn't exist.`);
+      return;
+    }
+    const targetBone = findBone(target.bone);
+    const driven = chainBones.map(findBone).filter(Boolean);
+    if (chainBones.includes(target.bone) || driven.some(b => isDescendant(targetBone, b))) {
+      issues.push(`${kind} "${id}": target bone "${target.bone}" is part of the chain it drives; move it under a bone outside the chain.`);
+    }
+  };
+
+  for (const c of rig.ikChains) {
+    checkChain('IK chain', c.id, c.bones);
+    checkBoneTarget('IK chain', c.id, c.target, c.bones);
+    const solver = c.solver === 'auto' ? (c.bones.length === 2 || c.bones.length === 3 ? 'two_bone' : 'ccd') : c.solver;
+    if (solver === 'two_bone' && c.bones.length < 2) issues.push(`IK chain "${c.id}": the two-bone solver needs at least 2 bones.`);
+  }
+  for (const l of rig.lookAts) {
+    checkChain('Look-at', l.id, l.bones);
+    checkBoneTarget('Look-at', l.id, l.target, l.bones);
+  }
+  for (const s of rig.springBones) checkChain('Spring bone', s.id, s.bones);
+
+  for (const c of rig.constraints) {
+    if (!bones.has(c.bone)) issues.push(`Constraint on "${c.bone}": bone doesn't exist.`);
+  }
+
+  const colliderIds = new Set();
+  for (const c of rig.colliders || []) {
+    if (colliderIds.has(c.id)) issues.push(`Collider id "${c.id}" is used twice.`);
+    colliderIds.add(c.id);
+    if (!bones.has(c.bone)) issues.push(`Collider "${c.id}": bone "${c.bone}" doesn't exist.`);
+    if (!(Number(c.radius) > 0)) issues.push(`Collider "${c.id}" needs a radius above 0.`);
+  }
+  for (const s of rig.springBones) {
+    for (const id of s.colliders || []) {
+      if (!colliderIds.has(id)) issues.push(`Spring bone "${s.id}": collider "${id}" doesn't exist.`);
+    }
+    for (const id of s.colliders || []) {
+      const c = (rig.colliders || []).find(x => x.id === id);
+      if (c && s.bones.includes(c.bone)) issues.push(`Spring bone "${s.id}": collider "${id}" is on one of its own bones, so the chain would always be pushed by itself.`);
+    }
+  }
+
+  const groundName = rig.previewGround?.bone;
+  if (groundName) {
+    const ground = findBone(groundName);
+    if (!ground) {
+      issues.push(`Preview ground bone "${groundName}" doesn't exist.`);
+    } else {
+      if (ground.parent && ground.parent !== 'root') issues.push(`Preview ground bone "${groundName}" is inside "${ground.parent.name}"; move it to the root so animations can't move the ground.`);
+      const used = new Set([
+        ...rig.ikChains.flatMap(c => c.bones), ...rig.lookAts.flatMap(l => l.bones), ...rig.springBones.flatMap(s => s.bones),
+        ...rig.hitboxes.map(h => h.bone), ...rig.sockets.map(s => s.bone).filter(Boolean), ...(rig.colliders || []).map(c => c.bone),
+      ]);
+      for (const name of used) {
+        const bone = findBone(name);
+        if (bone && (bone === ground || isDescendant(bone, ground))) {
+          issues.push(`Bone "${name}" is in the preview ground "${groundName}", which isn't exported; move it out of the ground bone.`);
+        }
+      }
+    }
+  }
+
+  const animations = new Set((typeof Animation !== 'undefined' ? Animation.all : []).map(a => a.name));
+  for (const b of rig.blendSpaces) {
+    if (b.samples.length < 2) issues.push(`Blend space "${b.name}" needs at least 2 samples.`);
+    for (const s of b.samples) {
+      if (!animations.has(s.animation)) issues.push(`Blend space "${b.name}": animation "${s.animation}" doesn't exist in this project.`);
+    }
+  }
+
+  const ids = {};
+  for (const x of [...rig.ikChains, ...rig.lookAts, ...rig.springBones]) ids[x.id] = (ids[x.id] || 0) + 1;
+  if (rig.constraints.some(c => c.standalone)) ids.bone_limits = (ids.bone_limits || 0) + 1;
+  for (const [id, n] of Object.entries(ids)) {
+    if (n > 1) issues.push(`Pose modifier id "${id}" is used ${n} times; AzureLib requires unique ids.`);
+  }
+
+  return issues;
+}
+
+const undoSnapshots = new WeakMap();
+let handlers = null;
+
+function registerRigState() {
+  if (handlers) return;
+
+  handlers = {
+    compile: event => {
+      if (Format?.id !== 'azure_model') return;
+      event.model.azurelibRig = RigStore.snapshot();
+    },
+    parsed: event => {
+      const model = event?.model || {};
+      RigStore.set(model.azurelibRig || emptyRig());
+    },
+    reset: () => RigStore.reset(),
+    undo: event => {
+      const snap = undoSnapshots.get(event?.entry);
+      if (snap) RigStore.set(snap.before);
+    },
+    redo: event => {
+      const snap = undoSnapshots.get(event?.entry);
+      if (snap) RigStore.set(snap.after);
+    },
+    select: event => {
+      // Switching tabs: the store mirrors the selected project's rig.
+      const project = event?.project || Project;
+      RigStore.set(project?.azurelibRig || emptyRig());
+    },
+    unselect: event => {
+      const project = event?.project || Project;
+      if (project) project.azurelibRig = RigStore.snapshot();
+    },
+  };
+
+  Codecs.project.on('compile', handlers.compile);
+  Codecs.project.on('parsed', handlers.parsed);
+  Blockbench.on('new_project', handlers.reset);
+  Blockbench.on('undo', handlers.undo);
+  Blockbench.on('redo', handlers.redo);
+  Blockbench.on('unselect_project', handlers.unselect);
+  Blockbench.on('select_project', handlers.select);
+}
+
+function unregisterRigState() {
+  if (!handlers) return;
+  Codecs.project.events?.compile?.remove?.(handlers.compile);
+  Codecs.project.events?.parsed?.remove?.(handlers.parsed);
+  Blockbench.removeListener('new_project', handlers.reset);
+  Blockbench.removeListener('undo', handlers.undo);
+  Blockbench.removeListener('redo', handlers.redo);
+  Blockbench.removeListener('unselect_project', handlers.unselect);
+  Blockbench.removeListener('select_project', handlers.select);
+  handlers = null;
+}
+
+;// ./animation/azure-pose-weights.js
+/**
+ * AzureLib Animator — Pose Modifier Weights
+ * -----------------------------------------
+ * Lets animations drive the per-entity pose layer weights of AzureLib's pose
+ * modifiers (IK chains, look-ats, spring bones, bone limits) without Java:
+ *
+ *   • Per-animation weights: "while this animation plays, fade head_look to 0
+ *     over 5 ticks, and fade it back over 5 ticks when it stops".
+ *   • Weight tracks: real timeline keyframes (one row per modifier, value in
+ *     X, 0 = off, 1 = full) with AzureLib easing, so a tail attack can switch
+ *     the tail spring off exactly where the swing starts and back on after.
+ *
+ * Both are previewed in the viewport (the rig preview multiplies them in) and
+ * written to the animation JSON as "pose_weights", which AzureLib turns into
+ * poseLayer().setWeight / fadeWeight calls for the entity playing it.
+ *
+ * JSON (per animation):
+ *   "pose_weights": {
+ *     "head_look": { "weight": 0, "fade_in": 5, "fade_out": 5 },
+ *     "tail": {
+ *       "fade_out": 10,
+ *       "keyframes": {
+ *         "0": 1,
+ *         "0.25": { "value": 0, "easing": "easeOutSine" },
+ *         "1.1": { "value": 0, "interpolation": "step" },
+ *         "1.5": 1
+ *       }
+ *     }
+ *   }
+ *
+ * Times in "keyframes" are seconds like the rest of the file; fades are ticks
+ * like fadeWeight. Defaults: weight 1, fade_in 0, fade_out 0, restore true.
+ *
+ * © 2026 AzureDoom — MIT License
+ */
+
+
+
+
+const POSE_PROP = 'azl_pose_weights';
+const POSE_ANIMATOR_TYPE = 'azl_pose_weight';
+const POSE_CHANNEL = 'azl_weight';
+
+const TICKS_PER_SECOND = 20;
+const azure_pose_weights_isAzureFormat = () => typeof Format !== 'undefined' && Format?.id === 'azure_model';
+const clamp01 = v => Math.min(1, Math.max(0, v));
+const round = (v, p = 1e5) => Math.round(v * p) / p;
+
+function rigModifierIds(rig = RigStore.rig) {
+  const ids = [
+    ...rig.ikChains.map(c => c.id),
+    ...rig.lookAts.map(l => l.id),
+    ...rig.springBones.map(s => s.id),
+  ];
+  if (rig.constraints.some(c => c.standalone)) ids.push('bone_limits');
+  return [...new Set(ids.filter(Boolean))];
+}
+
+function rigDefaultWeight(id, rig = RigStore.rig) {
+  const def = [...rig.ikChains, ...rig.lookAts, ...rig.springBones].find(x => x.id === id);
+  const w = Number(def?.weight);
+  return def && def.weight !== undefined && Number.isFinite(w) ? clamp01(w) : 1;
+}
+
+function newPoseSetting() {
+  return { weight: 1, fade_in: 0, fade_out: 0, restore: true };
+}
+
+function normalizeSetting(raw) {
+  const d = newPoseSetting();
+  if (!raw || typeof raw !== 'object') return d;
+  const num = (v, fallback) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
+  return {
+    weight: clamp01(num(raw.weight, d.weight)),
+    fade_in: Math.max(0, num(raw.fade_in, d.fade_in)),
+    fade_out: Math.max(0, num(raw.fade_out, d.fade_out)),
+    restore: raw.restore !== false,
+  };
+}
+
+function getPoseSettings(anim) {
+  const raw = anim?.[POSE_PROP];
+  if (!raw) return {};
+  let parsed;
+  try {
+    parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch {
+    return {};
+  }
+  const out = {};
+  if (parsed && typeof parsed === 'object') {
+    for (const [id, setting] of Object.entries(parsed)) {
+      if (id) out[id] = normalizeSetting(setting);
+    }
+  }
+  return out;
+}
+
+function setPoseSettings(anim, settings) {
+  const clean = {};
+  for (const [id, s] of Object.entries(settings || {})) {
+    if (id) clean[id] = normalizeSetting(s);
+  }
+  anim[POSE_PROP] = Object.keys(clean).length ? JSON.stringify(clean) : '';
+}
+
+let PoseWeightAnimatorClass = null;
+
+function definePoseWeightAnimator() {
+  if (PoseWeightAnimatorClass) return PoseWeightAnimatorClass;
+  if (typeof BoneAnimator === 'undefined') return null;
+
+  class PoseWeightAnimator extends BoneAnimator {
+    constructor(uuid, animation, name) {
+      super(uuid, animation, name);
+      this._name = name;
+    }
+
+    get name() { return this._name; }
+    set name(value) { this._name = value; }
+
+    getGroup() { return null; }
+    getElement() { return null; }
+
+    select() {
+      return GeneralAnimator.prototype.select.call(this);
+    }
+
+    displayFrame() { /* weights are read by the rig preview, nothing to pose */ }
+    doRender() { return false; }
+
+    fillValues(keyframe, values) {
+      let value;
+      if (Array.isArray(values)) value = values[0];
+      else if (typeof values === 'number' || typeof values === 'string') value = values;
+      else if (values && typeof values === 'object' && 'x' in values) value = values.x;
+      else value = round(sampleTrack(this, Timeline.time || 0) ?? 1, 1e4);
+
+      keyframe.set('x', value);
+      keyframe.set('y', 0);
+      keyframe.set('z', 0);
+    }
+  }
+
+  PoseWeightAnimator.prototype.type = POSE_ANIMATOR_TYPE;
+  PoseWeightAnimator.prototype.channels = {
+    [POSE_CHANNEL]: { name: 'Weight (X)', mutable: false, transform: true, max_data_points: 1 },
+  };
+
+  if (typeof Menu !== 'undefined') {
+    PoseWeightAnimator.prototype.menu = new Menu([
+      {
+        name: 'Remove Weight Track',
+        icon: 'delete',
+        click(animator) {
+          const anim = animator?.animation;
+          if (!anim) return;
+          Undo.initEdit({ animations: [anim] });
+          removeTrack(anim, animator._name);
+          anim.saved = false;
+          Undo.finishEdit('Remove pose weight track');
+          Animator.preview();
+        },
+      },
+    ]);
+  }
+
+  PoseWeightAnimatorClass = PoseWeightAnimator;
+  return PoseWeightAnimatorClass;
+}
+
+function isPoseWeightAnimator(animator) {
+  return !!animator && animator.type === POSE_ANIMATOR_TYPE;
+}
+
+function getTracks(anim) {
+  const out = {};
+  for (const animator of Object.values(anim?.animators || {})) {
+    if (isPoseWeightAnimator(animator)) out[animator._name] = animator;
+  }
+  return out;
+}
+
+function getTrack(anim, id) {
+  return getTracks(anim)[id] || null;
+}
+
+function createTrack(anim, id, uuid = guid()) {
+  const Cls = definePoseWeightAnimator();
+  if (!Cls || !anim || !id) return null;
+  const existing = getTrack(anim, id);
+  if (existing) return existing;
+  const animator = new Cls(uuid, anim, id);
+  anim.animators = anim.animators || {};
+  anim.animators[uuid] = animator;
+  return animator;
+}
+
+function removeTrack(anim, id) {
+  const animator = getTrack(anim, id);
+  if (!animator) return;
+  for (const kf of animator.keyframes.slice()) {
+    try { kf.remove(); } catch { /* already gone */ }
+  }
+  delete anim.animators[animator.uuid];
+  removeFromTimeline(animator);
+}
+
+function removeFromTimeline(animator) {
+  if (typeof Timeline === 'undefined' || !Array.isArray(Timeline.animators)) return;
+  const i = Timeline.animators.indexOf(animator);
+  if (i !== -1) Timeline.animators.splice(i, 1);
+  if (Timeline.selected_animator === animator) Timeline.selected_animator = null;
+}
+
+function addWeightKeyframe(animator, time, value, extra = {}) {
+  return animator.addKeyframe({
+    time,
+    channel: POSE_CHANNEL,
+    easing: extra.easing || EASING_DEFAULT,
+    easingArgs: extra.easingArgs,
+    interpolation: extra.interpolation,
+    data_points: [{ x: value, y: 0, z: 0 }],
+  });
+}
+
+function keyValue(kf) {
+  try {
+    const v = kf.calc('x');
+    return Number.isFinite(v) ? v : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function sampleTrack(animator, t) {
+  const kfs = (animator?.keyframes || []).filter(k => k.channel === POSE_CHANNEL).sort((a, b) => a.time - b.time);
+  if (!kfs.length) return null;
+  if (t <= kfs[0].time) return clamp01(keyValue(kfs[0]));
+  const last = kfs[kfs.length - 1];
+  if (t >= last.time) return clamp01(keyValue(last));
+
+  let i = 0;
+  while (i < kfs.length - 1 && kfs[i + 1].time <= t) i++;
+  const before = kfs[i];
+  const after = kfs[i + 1];
+  if (before.interpolation === 'step') return clamp01(keyValue(before));
+
+  const span = after.time - before.time;
+  const local = span > 1e-9 ? (t - before.time) / span : 1;
+  const easing = after.easing || EASING_DEFAULT;
+  const fn = easingRegistry[easing] || easingRegistry.linear;
+  let eased = hasArgs(easing)
+    ? fn(local, Array.isArray(after.easingArgs) && after.easingArgs.length ? after.easingArgs[0] : getEasingArgDefault(easing))
+    : fn(local);
+  if (!Number.isFinite(eased)) eased = local;
+
+  const a = keyValue(before);
+  const b = keyValue(after);
+  return clamp01(a + (b - a) * eased);
+}
+
+function animationWeightAt(anim, id, time, defaultWeight) {
+  if (!anim) return null;
+  const setting = getPoseSettings(anim)[id];
+  const track = getTrack(anim, id);
+  const tracked = track ? sampleTrack(track, time) : null;
+  const target = tracked ?? setting?.weight;
+  if (target === undefined || target === null) return null;
+
+  const fadeTicks = setting?.fade_in || 0;
+  if (fadeTicks <= 0) return target;
+  const progress = clamp01((time * TICKS_PER_SECOND) / fadeTicks);
+  return defaultWeight + (target - defaultWeight) * progress;
+}
+
+function previewWeight(id, defaultWeight) {
+  const base = Number.isFinite(Number(defaultWeight)) ? clamp01(Number(defaultWeight)) : 1;
+  if (!azure_pose_weights_isAzureFormat() || typeof Animation === 'undefined') return base;
+  const anim = Animation.selected;
+  if (!anim) return base;
+  const w = animationWeightAt(anim, id, Timeline?.time || 0, base);
+  return w === null ? base : clamp01(w);
+}
+
+function exportKeyValue(kf) {
+  const raw = kf.data_points?.[0]?.x;
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (trimmed === '') return 0;
+    const n = Number(trimmed);
+    return Number.isNaN(n) ? raw : round(clamp01(n));
+  }
+  return round(clamp01(Number(raw) || 0));
+}
+
+function writePoseWeightsJson(anim, obj, { orderedMap, normTime, roundTime }) {
+  delete obj.pose_weights;
+  const settings = getPoseSettings(anim);
+  const tracks = getTracks(anim);
+  const ids = [...new Set([...Object.keys(settings), ...Object.keys(tracks)])];
+  if (!ids.length) return obj;
+
+  const out = {};
+  for (const id of ids) {
+    const s = settings[id];
+    const track = tracks[id];
+    const keys = (track?.keyframes || []).filter(k => k.channel === POSE_CHANNEL).sort((a, b) => a.time - b.time);
+    if (!s && !keys.length) continue;
+
+    const node = {};
+    if (s && !keys.length) node.weight = round(s.weight);
+    if (s?.fade_in) node.fade_in = round(s.fade_in, 1e4);
+    if (s?.fade_out) node.fade_out = round(s.fade_out, 1e4);
+    if (s && s.restore === false) node.restore = false;
+
+    if (keys.length) {
+      node.keyframes = orderedMap(keys.map(kf => {
+        const value = exportKeyValue(kf);
+        const easing = kf.easing && kf.easing !== EASING_DEFAULT ? kf.easing : null;
+        const step = kf.interpolation === 'step';
+        if (!easing && !step) return [normTime(roundTime(kf.time)), value];
+        const key = { value };
+        if (easing) key.easing = easing;
+        if (easing && hasArgs(easing) && Array.isArray(kf.easingArgs) && kf.easingArgs.length) key.easingArgs = [...kf.easingArgs];
+        if (step) key.interpolation = 'step';
+        return [normTime(roundTime(kf.time)), key];
+      }));
+    }
+    out[id] = node;
+  }
+
+  if (Object.keys(out).length) obj.pose_weights = out;
+  return obj;
+}
+
+function readPoseWeightsJson(anim, src) {
+  const data = src?.pose_weights;
+  if (!data || typeof data !== 'object') return;
+
+  const settings = {};
+  for (const [id, node] of Object.entries(data)) {
+    if (!id) continue;
+    if (typeof node === 'number') {
+      settings[id] = normalizeSetting({ weight: node });
+      continue;
+    }
+    if (!node || typeof node !== 'object') continue;
+
+    const keyframes = node.keyframes && typeof node.keyframes === 'object' ? node.keyframes : null;
+    const hasSetting = ['weight', 'fade_in', 'fade_out', 'restore'].some(k => node[k] !== undefined);
+    if (hasSetting) settings[id] = normalizeSetting(node);
+
+    if (keyframes && Object.keys(keyframes).length) {
+      const animator = createTrack(anim, id);
+      if (!animator) continue;
+      for (const [rawTime, entry] of Object.entries(keyframes)) {
+        const time = parseFloat(rawTime);
+        if (!Number.isFinite(time)) continue;
+        if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+          addWeightKeyframe(animator, time, entry.value ?? 0, {
+            easing: entry.easing,
+            easingArgs: Array.isArray(entry.easingArgs) ? [...entry.easingArgs] : undefined,
+            interpolation: entry.interpolation === 'step' ? 'step' : undefined,
+          });
+        } else {
+          addWeightKeyframe(animator, time, Array.isArray(entry) ? entry[0] : entry);
+        }
+      }
+    }
+  }
+  setPoseSettings(anim, settings);
+}
+
+let originalGetUndoCopy = null;
+let originalExtend = null;
+
+function wrappedGetUndoCopy(...args) {
+  const copy = originalGetUndoCopy.apply(this, args);
+  const tracks = Object.values(getTracks(this));
+  if (copy && typeof copy === 'object') {
+    if (copy.animators) {
+      for (const key of Object.keys(copy.animators)) {
+        if (copy.animators[key]?.type === POSE_ANIMATOR_TYPE) delete copy.animators[key];
+      }
+    }
+    for (const animator of tracks) {
+      if (!animator.keyframes.length) continue;
+      copy.animators = copy.animators || {};
+      copy.animators[animator.uuid] = {
+        name: animator._name,
+        type: POSE_ANIMATOR_TYPE,
+        keyframes: animator.keyframes.map(kf => kf.getUndoCopy()),
+      };
+    }
+  }
+  return copy;
+}
+
+function wrappedExtend(data, ...rest) {
+  if (!data || typeof data !== 'object' || !data.animators || typeof data.animators !== 'object') {
+    return originalExtend.call(this, data, ...rest);
+  }
+
+  const mine = {};
+  const others = {};
+  for (const [key, blueprint] of Object.entries(data.animators)) {
+    (blueprint?.type === POSE_ANIMATOR_TYPE ? mine : others)[key] = blueprint;
+  }
+  const result = originalExtend.call(this, { ...data, animators: others }, ...rest);
+
+  for (const id of Object.keys(getTracks(this))) removeTrack(this, id);
+  for (const [key, blueprint] of Object.entries(mine)) {
+    const id = blueprint.name;
+    if (!id) continue;
+    const uuid = typeof isUUID === 'function' && isUUID(key) ? key : guid();
+    const animator = createTrack(this, id, uuid);
+    if (!animator) continue;
+    for (const kf of blueprint.keyframes || []) animator.addKeyframe(kf, kf.uuid);
+  }
+  return result;
+}
+
+function showTracksInTimeline(anim = Animation.selected) {
+  if (!azure_pose_weights_isAzureFormat() || !anim || !Animator?.open) return;
+  for (const animator of Object.values(getTracks(anim))) {
+    try { animator.addToTimeline(true); } catch { /* timeline not ready */ }
+  }
+}
+
+function onSelectAnimation() {
+  setTimeout(() => showTracksInTimeline(), 0);
+}
+
+function showPoseWeightsDialog(anim = Animation.selected) {
+  if (!anim) {
+    Blockbench.showQuickMessage('Select an animation first.', 2000);
+    return;
+  }
+
+  const settings = getPoseSettings(anim);
+  const tracks = getTracks(anim);
+  const rigIds = rigModifierIds();
+  const ids = [...new Set([...rigIds, ...Object.keys(settings), ...Object.keys(tracks)])];
+
+  const rows = ids.map(id => {
+    const s = settings[id];
+    const track = tracks[id];
+    return {
+      id,
+      inRig: rigIds.includes(id),
+      defaultWeight: rigDefaultWeight(id),
+      enabled: !!s || !!track,
+      weight: s ? s.weight : 0,
+      fade_in: s ? s.fade_in : 0,
+      fade_out: s ? s.fade_out : 0,
+      restore: s ? s.restore : true,
+      track: !!track,
+      trackKeys: track ? track.keyframes.length : 0,
+    };
+  });
+
+  const dialog = new Dialog({
+    id: 'azl_pose_weights',
+    title: `Pose Modifier Weights — ${anim.name}`,
+    width: 860,
+    component: {
+      data() {
+        return { rows, newId: '' };
+      },
+      methods: {
+        addCustom() {
+          const id = String(this.newId || '').trim();
+          if (!id || this.rows.some(r => r.id === id)) return;
+          this.rows.push({
+            id, inRig: false, defaultWeight: 1, enabled: true, weight: 0,
+            fade_in: 0, fade_out: 0, restore: true, track: false, trackKeys: 0,
+          });
+          this.newId = '';
+        },
+      },
+      template: `
+        <div class="dialog_content azl_pose_weights_dialog" style="display:flex;flex-direction:column;gap:10px;">
+          <p style="margin:0;opacity:0.8;line-height:1.45;">
+            While this animation plays, AzureLib sets each enabled modifier's pose layer weight
+            (0 = off, 1 = full) for the entity playing it, fading over the given ticks, and fades it
+            back to its default when the animation stops. A weight track replaces the fixed weight with
+            timeline keyframes (one row per modifier; the value is X).
+          </p>
+          <div v-if="!rows.length" style="opacity:0.7;">
+            No pose modifiers in the rig yet. Add IK, look-at or spring bones in the AzureLib Rig panel,
+            or add an id registered in code below.
+          </div>
+          <table v-else style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="text-align:left;opacity:0.8;">
+                <th style="padding:4px;">Modifier</th>
+                <th style="padding:4px;">Use</th>
+                <th style="padding:4px;">Weight</th>
+                <th style="padding:4px;">Fade in (ticks)</th>
+                <th style="padding:4px;">Fade out (ticks)</th>
+                <th style="padding:4px;" title="Fade back to the default weight when the animation stops">Restore</th>
+                <th style="padding:4px;">Weight track</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in rows" :key="row.id" style="border-top:1px solid rgba(255,255,255,0.08);">
+                <td style="padding:4px;">
+                  <code>{{ row.id }}</code>
+                  <div style="font-size:0.85em;opacity:0.6;">{{ row.inRig ? ('default ' + row.defaultWeight) : 'code-registered' }}</div>
+                </td>
+                <td style="padding:4px;"><input type="checkbox" v-model="row.enabled"></td>
+                <td style="padding:4px;">
+                  <input type="number" class="dark_bordered" style="width:70px;" min="0" max="1" step="0.05"
+                    v-model.number="row.weight" :disabled="!row.enabled || row.track">
+                </td>
+                <td style="padding:4px;">
+                  <input type="number" class="dark_bordered" style="width:70px;" min="0" step="1"
+                    v-model.number="row.fade_in" :disabled="!row.enabled">
+                </td>
+                <td style="padding:4px;">
+                  <input type="number" class="dark_bordered" style="width:70px;" min="0" step="1"
+                    v-model.number="row.fade_out" :disabled="!row.enabled || !row.restore">
+                </td>
+                <td style="padding:4px;"><input type="checkbox" v-model="row.restore" :disabled="!row.enabled"></td>
+                <td style="padding:4px;">
+                  <label style="display:flex;align-items:center;gap:6px;">
+                    <input type="checkbox" v-model="row.track" :disabled="!row.enabled">
+                    <span v-if="row.trackKeys" style="opacity:0.7;">{{ row.trackKeys }} key{{ row.trackKeys === 1 ? '' : 's' }}</span>
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" class="dark_bordered" style="flex:1;" v-model="newId"
+              placeholder="Modifier id registered in Java (e.g. head_look)" @keydown.enter.prevent="addCustom()">
+            <button type="button" style="position:static;padding:6px 12px;" @click="addCustom()">Add Id</button>
+          </div>
+        </div>
+      `,
+    },
+    onConfirm() {
+      const result = dialog.content_vue?.rows || [];
+      const removing = result.filter(r => (!r.enabled || !r.track) && r.trackKeys > 0);
+      if (removing.length && !confirm(`Delete the weight track${removing.length > 1 ? 's' : ''} for ${removing.map(r => r.id).join(', ')}?`)) {
+        return false;
+      }
+
+      Undo.initEdit({ animations: [anim] });
+
+      const next = {};
+      for (const r of result) {
+        if (!r.enabled) {
+          removeTrack(anim, r.id);
+          continue;
+        }
+        next[r.id] = { weight: r.weight, fade_in: r.fade_in, fade_out: r.fade_out, restore: r.restore };
+        if (r.track && !getTrack(anim, r.id)) {
+          const animator = createTrack(anim, r.id);
+          if (animator) addWeightKeyframe(animator, 0, clamp01(Number(r.weight) || 0));
+        } else if (!r.track) {
+          removeTrack(anim, r.id);
+        }
+      }
+      setPoseSettings(anim, next);
+      anim.saved = false;
+
+      Undo.finishEdit('Edit pose modifier weights');
+      showTracksInTimeline(anim);
+      Animator.preview();
+    },
+  });
+
+  dialog.show();
+}
+
+let azure_pose_weights_registered = false;
+let property = null;
+let action = null;
+let contextMenuItem = null;
+let addedPossibleChannel = false;
+
+function registerPoseWeights() {
+  if (azure_pose_weights_registered) return;
+  azure_pose_weights_registered = true;
+
+  if (typeof Property !== 'undefined' && typeof Animation !== 'undefined') {
+    property = new Property(Animation, 'string', POSE_PROP, { default: '' });
+  }
+
+  definePoseWeightAnimator();
+
+  if (typeof Animator !== 'undefined' && Animator.possible_channels && !Animator.possible_channels[POSE_CHANNEL]) {
+    Animator.possible_channels[POSE_CHANNEL] = true;
+    addedPossibleChannel = true;
+  }
+
+  try {
+    const filter = Timeline?.vue?.channels;
+    if (filter && typeof filter === 'object' && filter[POSE_CHANNEL] === undefined) {
+      if (typeof Vue !== 'undefined' && Vue.set) Vue.set(filter, POSE_CHANNEL, true);
+      else filter[POSE_CHANNEL] = true;
+    }
+  } catch { /* older timeline */ }
+
+  if (typeof Animation !== 'undefined') {
+    originalGetUndoCopy = Animation.prototype.getUndoCopy;
+    originalExtend = Animation.prototype.extend;
+    Animation.prototype.getUndoCopy = wrappedGetUndoCopy;
+    Animation.prototype.extend = wrappedExtend;
+  }
+
+  action = new Action('azl_pose_weights', {
+    name: 'Pose Modifier Weights…',
+    description: 'Set or keyframe how much IK, look-at and spring bones affect the pose while this animation plays',
+    icon: 'tune',
+    category: 'animation',
+    condition: () => azure_pose_weights_isAzureFormat() && !!Animator?.open,
+    click: () => showPoseWeightsDialog(),
+  });
+  try { MenuBar.menus?.animation?.addAction(action); } catch { /* menu missing */ }
+
+  const structure = Animation.prototype.menu?.structure;
+  if (Array.isArray(structure)) {
+    contextMenuItem = {
+      name: 'Pose Modifier Weights…',
+      id: 'azl_pose_weights_context',
+      icon: 'tune',
+      condition: () => azure_pose_weights_isAzureFormat(),
+      click: animation => showPoseWeightsDialog(animation),
+    };
+    structure.push(contextMenuItem);
+  }
+
+  Blockbench.on('select_animation', onSelectAnimation);
+}
+
+function unregisterPoseWeights() {
+  if (!azure_pose_weights_registered) return;
+  azure_pose_weights_registered = false;
+
+  Blockbench.removeListener('select_animation', onSelectAnimation);
+
+  const structure = Animation.prototype.menu?.structure;
+  if (contextMenuItem && Array.isArray(structure)) {
+    const i = structure.indexOf(contextMenuItem);
+    if (i !== -1) structure.splice(i, 1);
+  }
+  contextMenuItem = null;
+
+  action?.delete();
+  action = null;
+
+  if (originalGetUndoCopy) Animation.prototype.getUndoCopy = originalGetUndoCopy;
+  if (originalExtend) Animation.prototype.extend = originalExtend;
+  originalGetUndoCopy = null;
+  originalExtend = null;
+
+  if (addedPossibleChannel) delete Animator.possible_channels[POSE_CHANNEL];
+  addedPossibleChannel = false;
+
+  property?.delete?.();
+  property = null;
+}
+
 ;// ./animation/azure-animation-tab.js
 /**
  * AzureLib Animator — Unified Animation Tab
@@ -3251,6 +4260,7 @@ function unregisterPlayBehaviors() {
  *
  * © 2026 AzureDoom — MIT License
  */
+
 
 
 
@@ -3595,7 +4605,7 @@ function serializeAnimation(anim) {
 
   const bones = {};
   const effects = anim.animators.effects;
-  const boneAnimators = Object.values(anim.animators).filter(a => a instanceof BoneAnimator);
+  const boneAnimators = Object.values(anim.animators).filter(a => a instanceof BoneAnimator && !isPoseWeightAnimator(a));
 
   for (const boneAnim of boneAnimators) {
     const boneName = boneAnim.name;
@@ -3640,6 +4650,8 @@ function serializeAnimation(anim) {
   }
 
   if (Object.keys(bones).length) obj.bones = bones;
+
+  writePoseWeightsJson(anim, obj, { orderedMap, normTime, roundTime });
 
   // Effects (sound/particle/timeline)
   if (effects && Array.isArray(effects.keyframes) && effects.keyframes.length) {
@@ -3916,6 +4928,8 @@ function parseAnimation(name, src, filePath) {
       }
     }
   }
+
+  readPoseWeightsJson(anim, src);
 
   anim.calculateSnappingFromKeyframes?.();
   if (!Animation.selected && Animator.open) anim.select();
@@ -4617,6 +5631,7 @@ function registerAzureAnimationFormat() {
 
   patchExportAnimationAction();
   registerPlayBehaviors();
+  registerPoseWeights();
 
   if (!editAnimationIncludesAction) {
     editAnimationIncludesAction = new Action('azl_edit_animation_includes', {
@@ -4648,6 +5663,7 @@ function unregisterAzureAnimationFormat() {
 
   unpatchExportAnimationAction();
   unregisterPlayBehaviors();
+  unregisterPoseWeights();
 
   editAnimationIncludesAction?.delete();
   editAnimationIncludesAction = null;
@@ -4816,7 +5832,7 @@ function extractPolygons(mesh) {
   return polygons;
 }
 
-function round(value, precision = DEDUPE_PRECISION) {
+function azure_mesh_round(value, precision = DEDUPE_PRECISION) {
   return Math.round(value * precision) / precision;
 }
 
@@ -4846,7 +5862,7 @@ class PolyMeshBuilder {
   }
 
   addNormal(vector) {
-    const normal = toBedrock(vector).map(component => round(component));
+    const normal = toBedrock(vector).map(component => azure_mesh_round(component));
     const key = normal.join(',');
     let index = this.normalIndex.get(key);
     if (index === undefined) {
@@ -4858,7 +5874,7 @@ class PolyMeshBuilder {
   }
 
   addUV(uv) {
-    const value = [round(uv[0]), round(uv[1])];
+    const value = [azure_mesh_round(uv[0]), azure_mesh_round(uv[1])];
     const key = value.join(',');
     let index = this.uvIndex.get(key);
     if (index === undefined) {
@@ -4936,7 +5952,7 @@ function vertexInfluences(mesh, vkey, bones, jointIndexOf, stats) {
   for (const { bone, weight } of influences) {
     const normalized = weight / total;
     if (normalized < MIN_WEIGHT) continue;
-    result.push([jointIndexOf(bone), round(normalized)]);
+    result.push([jointIndexOf(bone), azure_mesh_round(normalized)]);
   }
 
   return result.length ? result : [[0, 1]];
@@ -5977,8 +6993,24 @@ function unregisterMeshImport() {
 
 
 
+
 const azure_codec_invertMolang = globalThis.invertMolang || invertMolang;
 const OFFSET_Y = 8.0; // BB changed how it's grid is centered in like 4.8 so this is needed.
+
+function displayGridOffset(rotation, scale, sign) {
+  const r = Array.isArray(rotation) ? rotation : [0, 0, 0];
+  const s = Array.isArray(scale) ? scale : [1, 1, 1];
+  const v = new THREE.Vector3(0, sign * OFFSET_Y * Number(s[1] ?? 1), 0);
+  v.applyEuler(new THREE.Euler(
+    THREE.MathUtils.degToRad(Number(r[0] || 0)),
+    THREE.MathUtils.degToRad(Number(r[1] || 0)),
+    THREE.MathUtils.degToRad(Number(r[2] || 0)),
+    'XYZ'
+  ));
+  return [v.x, v.y, v.z];
+}
+
+const round2 = n => Math.round(n * 100) / 100;
 
 let hasNotifiedConversion = false;
 let azureCodecRegistered = false;
@@ -6175,7 +7207,25 @@ function handleBedrockCompile(event) {
       delete geo.item_display_transforms;
     });
     injectMeshGeometry(geometry[0]);
+    stripPreviewGround(geometry[0]);
   }
+}
+
+function stripPreviewGround(geometry) {
+  const name = RigStore.rig?.previewGround?.bone;
+  if (!name || !Array.isArray(geometry?.bones)) return;
+  const removed = new Set([name]);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const bone of geometry.bones) {
+      if (bone.parent && removed.has(bone.parent) && !removed.has(bone.name)) {
+        removed.add(bone.name);
+        grew = true;
+      }
+    }
+  }
+  geometry.bones = geometry.bones.filter(bone => !removed.has(bone.name));
 }
 
 // ---------------------------------------------------------------------------
@@ -6208,13 +7258,14 @@ function maybeExportItemJson(options = {}, as) {
     if (Object.keys(display).length) {
       model.display = display;
       for (const [, data] of Object.entries(display)) {
-        if (Array.isArray(data?.translation)) {
-          data.translation = [
-            data.translation[0],
-            Math.round((Number(data.translation[1] || 0) - OFFSET_Y) * 100) / 100,
-            data.translation[2],
-          ];
-        }
+        if (!data) continue;
+        const t = Array.isArray(data.translation) ? data.translation : [0, 0, 0];
+        const o = displayGridOffset(data.rotation, data.scale, -1);
+        data.translation = [
+          round2(Number(t[0] || 0) + o[0]),
+          round2(Number(t[1] || 0) + o[1]),
+          round2(Number(t[2] || 0) + o[2]),
+        ];
       }
     }
   }
@@ -6278,7 +7329,8 @@ function maybeImportItemJson() {
       const translation = Array.isArray(data.translation) ? data.translation.slice() : [0, 0, 0];
       const scale = Array.isArray(data.scale) ? data.scale.slice() : [1, 1, 1];
 
-      translation[1] = Math.round((Number(translation[1] || 0) + OFFSET_Y) * 100) / 100;
+      const o = displayGridOffset(rotation, scale, +1);
+      for (let i = 0; i < 3; i++) translation[i] = round2(Number(translation[i] || 0) + o[i]);
 
       const slotObj = new DisplaySlot(slot);
       Object.assign(slotObj, { rotation, translation, scale });
@@ -6293,509 +7345,6 @@ function maybeImportItemJson() {
 }
 
 /* harmony default export */ const azure_codec = (getBedrockCodec());
-;// ./rig/azure-rig-state.js
-/**
- * AzureLib Animator — Rig Definitions
- * ------------------------------------
- * Project-persisted definitions for AzureLib's runtime rig features:
- * bone hitboxes, bone sockets, IK chains, look-at chains, bone constraints,
- * spring bones and blend spaces.
- *
- * © 2026 AzureDoom — MIT License
- */
-
-const RIG_VERSION = 1;
-
-const HITBOX_ROLES = ['COMBAT', 'INTERACT', 'ANCHOR'];
-
-const IK_TARGETS = {
-  bone: 'Animated bone',
-  ground: 'Ground (foot placement)',
-  entity_eyes: 'Another entity\'s eyes',
-  world: 'World position (code)',
-  model: 'Fixed model point',
-};
-
-const IK_SOLVERS = {
-  auto: 'Auto (two-bone for 2–3 bones, else CCD)',
-  two_bone: 'Two-bone',
-  ccd: 'CCD',
-};
-
-const CONSTRAINT_TYPES = {
-  limit: 'Limit (all axes)',
-  hinge_x: 'Hinge X',
-  hinge_y: 'Hinge Y',
-  hinge_z: 'Hinge Z',
-};
-
-/** A fresh, empty rig. */
-function emptyRig() {
-  return {
-    version: RIG_VERSION,
-    codegen: { target: 'v1_21_1', entityClass: 'ExampleEntity', packageRoot: '' },
-    hitboxOptions: { keepEntityBox: false, clientOnly: false },
-    hitboxes: [],
-    sockets: [],
-    ikChains: [],
-    lookAts: [],
-    constraints: [],
-    springBones: [],
-    colliders: [],
-    blendSpaces: [],
-  };
-}
-
-function newHitbox(bone) {
-  return {
-    name: bone,
-    bone,
-    role: 'COMBAT',
-    fit: true,
-    size: [4, 4, 4],
-    offset: [0, 0, 0],
-    inflate: 0,
-    anchorAtPivot: false,
-    damageMultiplier: 1,
-    tags: [],
-  };
-}
-
-function newSocket(name, { bone = null, locator = null } = {}) {
-  return {
-    name,
-    bone,
-    locator,
-    offset: [0, 0, 0],
-    rotation: [0, 0, 0],
-    serverHitbox: '',
-  };
-}
-
-function newIkChain(id, bones) {
-  return {
-    id,
-    bones,
-    effector: [0, 0, 0],
-    solver: 'auto',
-    pole: null,
-    iterations: 10,
-    tolerance: 0.1,
-    target: { type: 'ground', stepUp: 0.5, stepDown: 0.75, point: [0, 0, 0], bone: '' },
-    priority: 50,
-    weight: 1,
-    preview: { enabled: true, mode: 'ground', groundHeight: 0, locator: '', point: [0, 0, -16] },
-  };
-}
-
-function newLookAt(id, bones) {
-  return {
-    id,
-    bones,
-    forward: [0, 0, -1],
-    target: { type: 'entity_eyes', point: [0, 0, 0], bone: '' },
-    priority: 40,
-    weight: 1,
-    preview: { enabled: true, mode: 'point', locator: '', point: [0, 24, -32] },
-  };
-}
-
-function newConstraint(bone) {
-  return {
-    bone,
-    type: 'limit',
-    min: [-45, -45, -45],
-    max: [45, 45, 45],
-    standalone: false,
-  };
-}
-
-function newSpringBone(id, bones) {
-  return {
-    id,
-    bones,
-    tip: null,
-    stiffness: 0.2,
-    damping: 0.25,
-    gravity: 0,
-    inertia: 1,
-    priority: 200,
-    colliders: [],
-    radius: 0,
-    ground: false,
-    preview: { enabled: true },
-  };
-}
-
-/** A spring collider; positions are pixels from the bone's pivot along its axes, as for sockets. */
-function newCollider(id, bone) {
-  return {
-    id,
-    bone,
-    shape: 'sphere',
-    start: [0, 0, 0],
-    end: [0, 0, 0],
-    radius: 2,
-  };
-}
-
-function newBlendSpace(name) {
-  return {
-    name,
-    dimensions: 1,
-    input: { x: 'speed', y: 'forward' },
-    samples: [],
-    smoothing: 0,
-    syncPhase: true,
-  };
-}
-
-const listeners = new Set();
-
-const RigStore = {
-  rig: emptyRig(),
-
-  onChange(fn) {
-    listeners.add(fn);
-    return () => listeners.delete(fn);
-  },
-
-  notify() {
-    for (const fn of listeners) {
-      try { fn(this.rig); } catch (e) { console.error('[AzureLib Rig] listener failed', e); }
-    }
-  },
-
-  set(rig) {
-    this.rig = normalizeRig(rig);
-    this.notify();
-  },
-
-  reset() {
-    this.set(emptyRig());
-  },
-
-  snapshot() {
-    return JSON.parse(JSON.stringify(this.rig));
-  },
-
-  edit(name, mutate) {
-    const before = this.snapshot();
-    mutate(this.rig);
-    const after = this.snapshot();
-
-    if (JSON.stringify(before) === JSON.stringify(after)) return;
-
-    try {
-      Undo.initEdit({});
-      Undo.finishEdit(`AzureLib Rig: ${name}`);
-      const entry = Undo.history?.[Undo.index - 1];
-      if (entry) undoSnapshots.set(entry, { before, after });
-    } catch (e) {
-      console.warn('[AzureLib Rig] Could not record undo step', e);
-    }
-
-    if (typeof Project !== 'undefined' && Project) Project.saved = false;
-    this.notify();
-  },
-};
-
-// ---------------------------------------------------------------------------
-// Normalisation: tolerate older or hand-edited data
-// ---------------------------------------------------------------------------
-
-function vec3(value, fallback) {
-  if (!Array.isArray(value) || value.length < 3) return fallback.slice();
-  return [0, 1, 2].map(i => (Number.isFinite(Number(value[i])) ? Number(value[i]) : fallback[i]));
-}
-
-function list(value) {
-  return Array.isArray(value) ? value.filter(v => v && typeof v === 'object') : [];
-}
-
-function normalizeRig(raw) {
-  const base = emptyRig();
-  if (!raw || typeof raw !== 'object') return base;
-
-  base.codegen = { ...base.codegen, ...(raw.codegen || {}) };
-  if (base.codegen.target === 'modern') base.codegen.target = 'v1_21_1';
-  base.hitboxOptions = { ...base.hitboxOptions, ...(raw.hitboxOptions || {}) };
-
-  base.hitboxes = list(raw.hitboxes).map(h => ({
-    ...newHitbox(h.bone || ''),
-    ...h,
-    size: vec3(h.size, [4, 4, 4]),
-    offset: vec3(h.offset, [0, 0, 0]),
-    tags: Array.isArray(h.tags) ? h.tags.map(String) : [],
-    role: HITBOX_ROLES.includes(h.role) ? h.role : 'COMBAT',
-  }));
-
-  base.sockets = list(raw.sockets).map(s => ({
-    ...newSocket(s.name || 'socket'),
-    ...s,
-    offset: vec3(s.offset, [0, 0, 0]),
-    rotation: vec3(s.rotation, [0, 0, 0]),
-  }));
-
-  base.ikChains = list(raw.ikChains).map(c => {
-    const d = newIkChain(c.id || 'ik', Array.isArray(c.bones) ? c.bones : []);
-    return {
-      ...d,
-      ...c,
-      effector: vec3(c.effector, [0, 0, 0]),
-      pole: Array.isArray(c.pole) ? vec3(c.pole, [0, 0, 0]) : null,
-      target: { ...d.target, ...(c.target || {}), point: vec3(c.target?.point, [0, 0, 0]) },
-      preview: { ...d.preview, ...(c.preview || {}), point: vec3(c.preview?.point, d.preview.point) },
-    };
-  });
-
-  base.lookAts = list(raw.lookAts).map(l => {
-    const d = newLookAt(l.id || 'look', Array.isArray(l.bones) ? l.bones : []);
-    return {
-      ...d,
-      ...l,
-      forward: vec3(l.forward, [0, 0, -1]),
-      target: { ...d.target, ...(l.target || {}), point: vec3(l.target?.point, [0, 0, 0]) },
-      preview: { ...d.preview, ...(l.preview || {}), point: vec3(l.preview?.point, d.preview.point) },
-    };
-  });
-
-  base.constraints = list(raw.constraints).map(c => ({
-    ...newConstraint(c.bone || ''),
-    ...c,
-    min: vec3(c.min, [-45, -45, -45]),
-    max: vec3(c.max, [45, 45, 45]),
-  }));
-
-  base.springBones = list(raw.springBones).map(s => {
-    const d = newSpringBone(s.id || 'spring', Array.isArray(s.bones) ? s.bones : []);
-    return {
-      ...d,
-      ...s,
-      tip: Array.isArray(s.tip) ? vec3(s.tip, [0, 0, 0]) : null,
-      colliders: Array.isArray(s.colliders) ? s.colliders.map(String) : [],
-      radius: Math.max(0, Number(s.radius) || 0),
-      ground: !!s.ground,
-      preview: { ...d.preview, ...(s.preview || {}) },
-    };
-  });
-
-  base.colliders = list(raw.colliders).map(c => ({
-    ...newCollider(c.id || 'collider', c.bone || ''),
-    ...c,
-    shape: c.shape === 'capsule' ? 'capsule' : 'sphere',
-    start: vec3(c.start, [0, 0, 0]),
-    end: vec3(c.end, [0, 0, 0]),
-    radius: Number(c.radius) > 0 ? Number(c.radius) : 2,
-  }));
-
-  base.blendSpaces = list(raw.blendSpaces).map(b => ({
-    ...newBlendSpace(b.name || 'blend'),
-    ...b,
-    input: { x: 'speed', y: 'forward', ...(b.input || {}) },
-    samples: list(b.samples).map(s => ({
-      x: Number(s.x) || 0,
-      y: Number(s.y) || 0,
-      animation: String(s.animation || ''),
-    })),
-  }));
-
-  return base;
-}
-
-function boneNames() {
-  return (typeof Group !== 'undefined' ? Group.all : []).map(g => g.name);
-}
-
-function locatorNames() {
-  return (typeof Locator !== 'undefined' ? Locator.all : []).map(l => l.name);
-}
-
-function findBone(name) {
-  return (typeof Group !== 'undefined' ? Group.all : []).find(g => g.name === name) || null;
-}
-
-function isDescendant(child, ancestor) {
-  for (let node = child?.parent; node && node !== 'root'; node = node.parent) {
-    if (node === ancestor) return true;
-  }
-  return false;
-}
-
-function validateRig(rig = RigStore.rig) {
-  const issues = [];
-  const bones = new Set(boneNames());
-  const locators = new Set(locatorNames());
-
-  const checkChain = (kind, id, names) => {
-    if (!names.length) {
-      issues.push(`${kind} "${id}" has no bones.`);
-      return;
-    }
-    for (const n of names) {
-      if (!bones.has(n)) issues.push(`${kind} "${id}": bone "${n}" doesn't exist.`);
-    }
-    for (let i = 1; i < names.length; i++) {
-      const parent = findBone(names[i - 1]);
-      const child = findBone(names[i]);
-      if (parent && child && !isDescendant(child, parent)) {
-        issues.push(`${kind} "${id}": "${names[i]}" isn't under "${names[i - 1]}"; list bones root first, each inside the one before.`);
-      }
-    }
-  };
-
-  const seenHitboxes = new Set();
-  for (const h of rig.hitboxes) {
-    if (!bones.has(h.bone)) issues.push(`Hitbox "${h.name}": bone "${h.bone}" doesn't exist.`);
-    if (seenHitboxes.has(h.name)) issues.push(`Hitbox name "${h.name}" is used twice.`);
-    seenHitboxes.add(h.name);
-    if (!h.fit && h.size.every(v => !v) && !h.inflate) issues.push(`Hitbox "${h.name}" has no size.`);
-    if (h.fit) {
-      const bone = findBone(h.bone);
-      const hasCubes = bone?.children?.some(c => typeof Cube !== 'undefined' && c instanceof Cube);
-      if (bone && !hasCubes) issues.push(`Hitbox "${h.name}" fits bone "${h.bone}", which has no cubes of its own; give it a size.`);
-    }
-  }
-
-  const seenSockets = new Set();
-  for (const s of rig.sockets) {
-    if (seenSockets.has(s.name)) issues.push(`Socket name "${s.name}" is used twice.`);
-    seenSockets.add(s.name);
-    if (s.locator && !locators.has(s.locator)) issues.push(`Socket "${s.name}": locator "${s.locator}" doesn't exist.`);
-    if (!s.locator && !bones.has(s.bone)) issues.push(`Socket "${s.name}": bone "${s.bone}" doesn't exist.`);
-    if (s.serverHitbox && s.locator) issues.push(`Socket "${s.name}" follows a locator, so its server hitbox must be added by hand (toAnchorHitbox() only works for bone sockets).`);
-  }
-
-  const locatorCounts = {};
-  for (const l of locatorNames()) locatorCounts[l] = (locatorCounts[l] || 0) + 1;
-  for (const [name, count] of Object.entries(locatorCounts)) {
-    if (count > 1) issues.push(`Locator name "${name}" is used ${count} times; AzureLib resolves the first one it finds.`);
-  }
-
-  const checkBoneTarget = (kind, id, target, chainBones) => {
-    if (target?.type !== 'bone') return;
-    if (!target.bone) {
-      issues.push(`${kind} "${id}": pick the bone to follow.`);
-      return;
-    }
-    if (!bones.has(target.bone)) {
-      issues.push(`${kind} "${id}": target bone "${target.bone}" doesn't exist.`);
-      return;
-    }
-    const targetBone = findBone(target.bone);
-    const driven = chainBones.map(findBone).filter(Boolean);
-    if (chainBones.includes(target.bone) || driven.some(b => isDescendant(targetBone, b))) {
-      issues.push(`${kind} "${id}": target bone "${target.bone}" is part of the chain it drives; move it under a bone outside the chain.`);
-    }
-  };
-
-  for (const c of rig.ikChains) {
-    checkChain('IK chain', c.id, c.bones);
-    checkBoneTarget('IK chain', c.id, c.target, c.bones);
-    const solver = c.solver === 'auto' ? (c.bones.length === 2 || c.bones.length === 3 ? 'two_bone' : 'ccd') : c.solver;
-    if (solver === 'two_bone' && c.bones.length < 2) issues.push(`IK chain "${c.id}": the two-bone solver needs at least 2 bones.`);
-  }
-  for (const l of rig.lookAts) {
-    checkChain('Look-at', l.id, l.bones);
-    checkBoneTarget('Look-at', l.id, l.target, l.bones);
-  }
-  for (const s of rig.springBones) checkChain('Spring bone', s.id, s.bones);
-
-  for (const c of rig.constraints) {
-    if (!bones.has(c.bone)) issues.push(`Constraint on "${c.bone}": bone doesn't exist.`);
-  }
-
-  const colliderIds = new Set();
-  for (const c of rig.colliders || []) {
-    if (colliderIds.has(c.id)) issues.push(`Collider id "${c.id}" is used twice.`);
-    colliderIds.add(c.id);
-    if (!bones.has(c.bone)) issues.push(`Collider "${c.id}": bone "${c.bone}" doesn't exist.`);
-    if (!(Number(c.radius) > 0)) issues.push(`Collider "${c.id}" needs a radius above 0.`);
-  }
-  for (const s of rig.springBones) {
-    for (const id of s.colliders || []) {
-      if (!colliderIds.has(id)) issues.push(`Spring bone "${s.id}": collider "${id}" doesn't exist.`);
-    }
-    for (const id of s.colliders || []) {
-      const c = (rig.colliders || []).find(x => x.id === id);
-      if (c && s.bones.includes(c.bone)) issues.push(`Spring bone "${s.id}": collider "${id}" is on one of its own bones, so the chain would always be pushed by itself.`);
-    }
-  }
-
-  const animations = new Set((typeof Animation !== 'undefined' ? Animation.all : []).map(a => a.name));
-  for (const b of rig.blendSpaces) {
-    if (b.samples.length < 2) issues.push(`Blend space "${b.name}" needs at least 2 samples.`);
-    for (const s of b.samples) {
-      if (!animations.has(s.animation)) issues.push(`Blend space "${b.name}": animation "${s.animation}" doesn't exist in this project.`);
-    }
-  }
-
-  const ids = {};
-  for (const x of [...rig.ikChains, ...rig.lookAts, ...rig.springBones]) ids[x.id] = (ids[x.id] || 0) + 1;
-  if (rig.constraints.some(c => c.standalone)) ids.bone_limits = (ids.bone_limits || 0) + 1;
-  for (const [id, n] of Object.entries(ids)) {
-    if (n > 1) issues.push(`Pose modifier id "${id}" is used ${n} times; AzureLib requires unique ids.`);
-  }
-
-  return issues;
-}
-
-const undoSnapshots = new WeakMap();
-let handlers = null;
-
-function registerRigState() {
-  if (handlers) return;
-
-  handlers = {
-    compile: event => {
-      if (Format?.id !== 'azure_model') return;
-      event.model.azurelibRig = RigStore.snapshot();
-    },
-    parsed: event => {
-      const model = event?.model || {};
-      RigStore.set(model.azurelibRig || emptyRig());
-    },
-    reset: () => RigStore.reset(),
-    undo: event => {
-      const snap = undoSnapshots.get(event?.entry);
-      if (snap) RigStore.set(snap.before);
-    },
-    redo: event => {
-      const snap = undoSnapshots.get(event?.entry);
-      if (snap) RigStore.set(snap.after);
-    },
-    select: event => {
-      // Switching tabs: the store mirrors the selected project's rig.
-      const project = event?.project || Project;
-      RigStore.set(project?.azurelibRig || emptyRig());
-    },
-    unselect: event => {
-      const project = event?.project || Project;
-      if (project) project.azurelibRig = RigStore.snapshot();
-    },
-  };
-
-  Codecs.project.on('compile', handlers.compile);
-  Codecs.project.on('parsed', handlers.parsed);
-  Blockbench.on('new_project', handlers.reset);
-  Blockbench.on('undo', handlers.undo);
-  Blockbench.on('redo', handlers.redo);
-  Blockbench.on('unselect_project', handlers.unselect);
-  Blockbench.on('select_project', handlers.select);
-}
-
-function unregisterRigState() {
-  if (!handlers) return;
-  Codecs.project.events?.compile?.remove?.(handlers.compile);
-  Codecs.project.events?.parsed?.remove?.(handlers.parsed);
-  Blockbench.removeListener('new_project', handlers.reset);
-  Blockbench.removeListener('undo', handlers.undo);
-  Blockbench.removeListener('redo', handlers.redo);
-  Blockbench.removeListener('unselect_project', handlers.unselect);
-  Blockbench.removeListener('select_project', handlers.select);
-  handlers = null;
-}
-
 ;// ./rig/azure-rig-math.js
 /**
  * AzureLib Animator — Rig Math
@@ -6946,6 +7495,8 @@ function blendSpaceRange(blendSpace) {
  *   • In Animate mode, the pose modifiers run on top of the animation every
  *     frame, in AzureLib's priority order, with the same solvers the game
  *     uses: two-bone and CCD IK, look-at, spring bones and constraints.
+ *   • Each modifier's weight is its rig default, or what the selected
+ *     animation sets for it (fixed weight with fade-in, or a weight track).
  *   • Blend spaces, by stacking their samples at AzureLib's weights (without
  *     touching the animations' own playing state or blend weights).
  *
@@ -6957,8 +7508,9 @@ function blendSpaceRange(blendSpace) {
 
 
 
+
 const DEG = Math.PI / 180;
-const TICKS_PER_SECOND = 20;
+const azure_rig_preview_TICKS_PER_SECOND = 20;
 const PIXELS_PER_BLOCK = 16;
 
 const COLOR_COMBAT = 0x55ff55;
@@ -7007,6 +7559,16 @@ function modelToWorld(point) {
   if (root) {
     root.updateWorldMatrix(true, false);
     v.applyMatrix4(root.matrixWorld);
+  }
+  return v;
+}
+
+function worldToModel(point) {
+  const v = point.clone();
+  const root = Project?.model_3d;
+  if (root) {
+    root.updateWorldMatrix(true, false);
+    v.applyMatrix4(new THREE.Matrix4().copy(root.matrixWorld).invert());
   }
   return v;
 }
@@ -7435,6 +7997,91 @@ function solveCcd(bones, effector, target, constraints, iterations, tolerance) {
   }
 }
 
+function groundBone() {
+  const name = RigStore.rig.previewGround?.bone;
+  return name ? azure_rig_preview_findBone(name) : null;
+}
+
+function groundElements(group) {
+  const out = [];
+  const walk = node => {
+    for (const child of node.children || []) {
+      if (child instanceof Group) walk(child);
+      else if (child?.mesh && (child.type === 'cube' || child.type === 'mesh')) out.push(child);
+    }
+  };
+  walk(group);
+  return out;
+}
+
+function elementHit(element, a, b) {
+  const mesh = element.mesh;
+  mesh.updateWorldMatrix(true, false);
+
+  if (element.type === 'cube') {
+    const geometry = mesh.geometry;
+    if (!geometry) return null;
+    if (!geometry.boundingBox) geometry.computeBoundingBox();
+    const box = geometry.boundingBox;
+    const la = mesh.worldToLocal(a.clone());
+    const lb = mesh.worldToLocal(b.clone());
+    let enter = 0;
+    let exit = 1;
+    for (const axis of ['x', 'y', 'z']) {
+      const d = lb[axis] - la[axis];
+      const min = box.min[axis];
+      const max = box.max[axis];
+      if (Math.abs(d) < 1e-9) {
+        if (la[axis] < min || la[axis] > max) return null;
+        continue;
+      }
+      let t0 = (min - la[axis]) / d;
+      let t1 = (max - la[axis]) / d;
+      if (t0 > t1) [t0, t1] = [t1, t0];
+      enter = Math.max(enter, t0);
+      exit = Math.min(exit, t1);
+      if (enter > exit) return null;
+    }
+    return enter;
+  }
+
+  const length = a.distanceTo(b);
+  if (length < 1e-9) return null;
+  const raycaster = new THREE.Raycaster(a, b.clone().sub(a).normalize(), 0, length);
+  const material = mesh.material;
+  const materials = Array.isArray(material) ? material : [material];
+  const sides = materials.map(m => m?.side);
+  materials.forEach(m => { if (m) m.side = THREE.DoubleSide; });
+  try {
+    const hit = raycaster.intersectObject(mesh, false)[0];
+    return hit ? hit.distance / length : null;
+  } finally {
+    materials.forEach((m, i) => { if (m) m.side = sides[i]; });
+  }
+}
+
+function groundHitY(from, to, floorY) {
+  let best = null;
+
+  if (RigStore.rig.previewGround?.floor !== false) {
+    // The floor is solid below floorY.
+    if (from.y <= floorY) best = 0;
+    else if (to.y <= floorY) best = (from.y - floorY) / (from.y - to.y);
+  }
+
+  const bone = groundBone();
+  if (bone) {
+    const a = modelToWorld([from.x, from.y, from.z]);
+    const b = modelToWorld([to.x, to.y, to.z]);
+    for (const element of groundElements(bone)) {
+      const t = elementHit(element, a, b);
+      if (t !== null && (best === null || t < best)) best = t;
+    }
+  }
+
+  return best === null ? null : from.y + (to.y - from.y) * best;
+}
+
 /** Where a chain's preview target is this frame, in world space, or null to skip. */
 function previewTarget(entry, effectorWorld) {
   if (entry.target?.type === 'bone') {
@@ -7451,10 +8098,17 @@ function previewTarget(entry, effectorWorld) {
   }
 
   if (p.mode === 'ground') {
-    // AzIkTargets.ground keeps the animated foot height but measures it from the
-    // ground under the foot: with flat preview ground raised by groundHeight,
-    // the foot moves up by that much.
-    return effectorWorld.clone().add(new THREE.Vector3(0, Number(p.groundHeight) || 0, 0));
+    // AzIkTargets.ground: search from maxStepUp above the animated foot to maxStepDown below
+    // it, skip on a miss, and otherwise raise the foot by how far that ground is from the
+    // ground the entity stands on (the model origin here).
+    const stepUp = Number.isFinite(Number(entry.target?.stepUp)) ? Number(entry.target.stepUp) : 0.5;
+    const stepDown = Number.isFinite(Number(entry.target?.stepDown)) ? Number(entry.target.stepDown) : 0.75;
+    const foot = worldToModel(effectorWorld);
+    const from = foot.clone().add(new THREE.Vector3(0, stepUp * PIXELS_PER_BLOCK, 0));
+    const to = foot.clone().add(new THREE.Vector3(0, -stepDown * PIXELS_PER_BLOCK, 0));
+    const hitY = groundHitY(from, to, Number(p.groundHeight) || 0);
+    if (hitY === null) return null;
+    return modelToWorld([foot.x, foot.y + hitY, foot.z]);
   }
 
   return modelToWorld(p.point || [0, 0, 0]);
@@ -7472,6 +8126,8 @@ function blendRotations(meshes, before, weight) {
 }
 
 function runIkChain(chain) {
+  const weight = previewWeight(chain.id, chain.weight);
+  if (weight <= 0) return;
   const bones = chain.bones.map(azure_rig_preview_findBone);
   if (bones.some(b => !b?.mesh) || !bones.length) return;
   const meshes = bones.map(b => b.mesh);
@@ -7489,10 +8145,12 @@ function runIkChain(chain) {
     solveCcd(bones, chain.effector, target, constraints, Math.max(1, chain.iterations | 0), Math.max(0.001, Number(chain.tolerance) || 0.1));
   }
 
-  blendRotations(meshes, before, Number(chain.weight) || 0);
+  blendRotations(meshes, before, weight);
 }
 
 function runLookAt(look) {
+  const weight = previewWeight(look.id, look.weight);
+  if (weight <= 0) return;
   const bones = look.bones.map(azure_rig_preview_findBone);
   if (bones.some(b => !b?.mesh) || !bones.length) return;
   const meshes = bones.map(b => b.mesh);
@@ -7513,7 +8171,7 @@ function runLookAt(look) {
     if (constraints[i]) applyConstraint(bones[i], constraints[i]);
   }
 
-  blendRotations(meshes, before, Number(look.weight) || 0);
+  blendRotations(meshes, before, weight);
 }
 
 const springStates = new Map();
@@ -7608,6 +8266,8 @@ function runSpring(spring) {
   const bones = spring.bones.map(azure_rig_preview_findBone);
   if (bones.some(b => !b?.mesh) || !bones.length || spring.preview?.enabled === false) return;
   const meshes = bones.map(b => b.mesh);
+  const weight = previewWeight(spring.id, spring.weight);
+  const before = captureRotations(meshes);
   const tip = spring.tip;
   const count = meshes.length + (tip ? 1 : 0);
 
@@ -7632,8 +8292,8 @@ function runSpring(spring) {
   let delta = 0;
   if (!fresh) {
     delta = playing && state.playing
-      ? ((now - state.wall) / 1000) * TICKS_PER_SECOND * ((Timeline.playback_speed ?? 100) / 100)
-      : (time - state.time) * TICKS_PER_SECOND;
+      ? ((now - state.wall) / 1000) * azure_rig_preview_TICKS_PER_SECOND * ((Timeline.playback_speed ?? 100) / 100)
+      : (time - state.time) * azure_rig_preview_TICKS_PER_SECOND;
   }
 
   if (fresh || delta < 0 || delta > 10) {
@@ -7695,19 +8355,26 @@ function runSpring(spring) {
     state.playing = playing;
   }
 
+  if (weight <= 0) return;
   const constraints = constraintsFor(spring.bones);
   for (let i = 0; i < count - 1; i++) {
     aim(meshes[i], chainPoint(i + 1), state.position[i + 1]);
     if (constraints[i]) applyConstraint(bones[i], constraints[i]);
   }
+  blendRotations(meshes, before, weight);
 }
 
 function runStandaloneConstraints() {
-  for (const c of RigStore.rig.constraints) {
-    if (!c.standalone) continue;
-    const bone = azure_rig_preview_findBone(c.bone);
-    if (bone) applyConstraint(bone, c);
-  }
+  const weight = previewWeight('bone_limits', 1);
+  if (weight <= 0) return;
+  const bones = RigStore.rig.constraints
+    .filter(c => c.standalone)
+    .map(c => ({ c, bone: azure_rig_preview_findBone(c.bone) }))
+    .filter(x => x.bone?.mesh);
+  const meshes = bones.map(x => x.bone.mesh);
+  const before = captureRotations(meshes);
+  for (const { c, bone } of bones) applyConstraint(bone, c);
+  blendRotations(meshes, before, weight);
 }
 
 function runModifiers() {
@@ -8546,12 +9213,13 @@ function targetForm(t, kinds) {
 
 function previewForm(p, allowGround) {
   const modes = { off: 'Off', point: 'Fixed point', locator: 'Follow a locator' };
-  if (allowGround) modes.ground = 'Ground (raised by offset)';
+  if (allowGround) modes.ground = 'Ground (like in game)';
   return {
     _preview: { type: 'info', text: '<b>Viewport preview</b> (Animate mode)' },
     _previewBone: { type: 'info', text: 'The preview follows the bone itself.', condition: f => f.targetType === 'bone' },
     previewMode: { label: 'Preview target', type: 'select', options: modes, value: p.enabled === false ? 'off' : p.mode, condition: f => f.targetType !== 'bone' },
-    groundHeight: { label: 'Ground offset (pixels)', type: 'number', value: p.groundHeight ?? 0, condition: f => f.targetType !== 'bone' && f.previewMode === 'ground' },
+    groundHeight: { label: 'Floor height (pixels)', type: 'number', value: p.groundHeight ?? 0, condition: f => f.targetType !== 'bone' && f.previewMode === 'ground' },
+    _groundHint: { type: 'info', text: 'The foot looks for ground between Max step up and Max step down, against the floor and the cubes of the <b>Ground</b> bone (set in the panel). Nothing in range leaves the leg as animated, as in game.', condition: f => f.targetType !== 'bone' && f.previewMode === 'ground' },
     previewPoint: { label: 'Point (pixels)', type: 'vector', dimensions: 3, value: p.point, condition: f => f.targetType !== 'bone' && f.previewMode === 'point' },
     previewLocator: { label: 'Locator', type: 'select', options: locatorOptions(), value: p.locator || '', condition: f => f.targetType !== 'bone' && f.previewMode === 'locator' },
   };
@@ -8875,6 +9543,46 @@ const Add = {
     editBlendSpace(RigStore.rig.blendSpaces.length - 1);
   },
 };
+
+const NEW_GROUND = '__azl_new_ground__';
+
+function editPreviewGround() {
+  const g = RigStore.rig.previewGround || { bone: '', floor: true };
+  const options = { '': 'None (floor only)', [NEW_GROUND]: 'New bone: preview_ground' };
+  for (const group of Group.all) options[group.name] = group.name;
+  openForm('Preview ground', {
+    bone: { label: 'Ground bone', type: 'select', options, value: g.bone && azure_rig_panel_findGroup(g.bone) ? g.bone : '' },
+    floor: { label: 'Endless floor', type: 'checkbox', value: g.floor !== false },
+  }, r => {
+    let bone = r.bone;
+    if (bone === NEW_GROUND) bone = createGroundBone();
+    RigStore.edit('Preview ground', rig => { rig.previewGround = { bone: bone || '', floor: !!r.floor }; });
+  }, [
+    '<p>Cubes and meshes in the ground bone stand in for blocks: IK chains with a <b>Ground</b> target cast down onto them in the Animate tab, like <code>AzIkTargets.ground</code> does in game. The ground bone is left out of the exported model.</p>',
+    '<p>Keep it at the root, and keep the ground the entity stands on at the grid (y = 0): in game that\'s where the entity\'s feet are. The endless floor is that ground; turn it off to test ledges and holes.</p>',
+  ]);
+}
+
+function azure_rig_panel_findGroup(name) {
+  return Group.all.find(g => g.name === name) || null;
+}
+
+/** Adds a root bone with a half-slab step in front of the model, as a starting point. */
+function createGroundBone() {
+  const name = uniqueId('preview_ground', Group.all.map(g => g.name));
+  try {
+    Undo.initEdit({ outliner: true, elements: [] });
+    const group = new Group({ name, origin: [0, 0, 0] }).init();
+    const cube = new Cube({ name: 'step', from: [-8, 0, -24], to: [8, 8, -8] }).addTo(group).init();
+    Undo.finishEdit('Add preview ground', { outliner: true, elements: [cube] });
+    Canvas.updateAll?.();
+  } catch (e) {
+    console.warn('[AzureLib Rig] Could not create the preview ground bone', e);
+    Blockbench.showQuickMessage('Could not create the ground bone; add one yourself and pick it here.', 2500);
+    return '';
+  }
+  return name;
+}
 
 function showValidation() {
   const issues = validateRig();
@@ -9309,6 +10017,11 @@ function registerPanel() {
           RigStore.edit('Hitbox set options', rig => { rig.hitboxOptions[key] = !rig.hitboxOptions[key]; });
         },
         check() { showValidation(); },
+        ground() { editPreviewGround(); },
+        groundTitle() {
+          const g = this.rig.previewGround || {};
+          return `Preview ground for Ground IK targets: ${g.bone ? `bone ${g.bone}` : 'no ground bone'}, floor ${g.floor === false ? 'off' : 'on'}`;
+        },
         generate() { showCodeExport(); },
         pct(v) { return `${Math.round((v || 0) * 100)}%`; },
       },
@@ -9317,6 +10030,7 @@ function registerPanel() {
   <div class="azl-bar">
     <span class="azl-btn" @click="generate()" title="Generate AzureLib Java for this rig">Code</span>
     <span class="azl-btn" @click="check()" title="Check the rig against the model">Check<span v-if="issueCount" class="azl-badge">{{ issueCount }}</span></span>
+    <span class="azl-btn" @click="ground()" :title="groundTitle()">Ground</span>
     <span class="azl-spacer"></span>
     <span class="azl-chip" :class="{on: preview.hitboxes}" @click="togglePreview('hitboxes')" title="Show hitboxes in the viewport">Boxes</span>
     <span class="azl-chip" :class="{on: preview.sockets}" @click="togglePreview('sockets')" title="Show sockets in the viewport">Sockets</span>
@@ -9624,6 +10338,193 @@ function loadAzureLib() {
       restoreOverrides();
       console.log('[AzureLib] Animator unloaded.');
     }
+
+
+/***/ }),
+
+/***/ 1961:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var cloneArrayBuffer = __webpack_require__(9653);
+
+/**
+ * Creates a clone of `typedArray`.
+ *
+ * @private
+ * @param {Object} typedArray The typed array to clone.
+ * @param {boolean} [isDeep] Specify a deep clone.
+ * @returns {Object} Returns the cloned typed array.
+ */
+function cloneTypedArray(typedArray, isDeep) {
+  var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
+  return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
+}
+
+module.exports = cloneTypedArray;
+
+
+/***/ }),
+
+/***/ 2032:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var nativeCreate = __webpack_require__(1042);
+
+/**
+ * Removes all key-value entries from the hash.
+ *
+ * @private
+ * @name clear
+ * @memberOf Hash
+ */
+function hashClear() {
+  this.__data__ = nativeCreate ? nativeCreate(null) : {};
+  this.size = 0;
+}
+
+module.exports = hashClear;
+
+
+/***/ }),
+
+/***/ 2111:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+const eq = __webpack_require__(4641)
+const neq = __webpack_require__(3999)
+const gt = __webpack_require__(5580)
+const gte = __webpack_require__(4089)
+const lt = __webpack_require__(7059)
+const lte = __webpack_require__(5200)
+
+const cmp = (a, op, b, loose) => {
+  switch (op) {
+    case '===':
+      if (typeof a === 'object') {
+        a = a.version
+      }
+      if (typeof b === 'object') {
+        b = b.version
+      }
+      return a === b
+
+    case '!==':
+      if (typeof a === 'object') {
+        a = a.version
+      }
+      if (typeof b === 'object') {
+        b = b.version
+      }
+      return a !== b
+
+    case '':
+    case '=':
+    case '==':
+      return eq(a, b, loose)
+
+    case '!=':
+      return neq(a, b, loose)
+
+    case '>':
+      return gt(a, b, loose)
+
+    case '>=':
+      return gte(a, b, loose)
+
+    case '<':
+      return lt(a, b, loose)
+
+    case '<=':
+      return lte(a, b, loose)
+
+    default:
+      throw new TypeError(`Invalid operator: ${op}`)
+  }
+}
+module.exports = cmp
+
+
+/***/ }),
+
+/***/ 2199:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var arrayPush = __webpack_require__(4528),
+    isArray = __webpack_require__(6449);
+
+/**
+ * The base implementation of `getAllKeys` and `getAllKeysIn` which uses
+ * `keysFunc` and `symbolsFunc` to get the enumerable property names and
+ * symbols of `object`.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @param {Function} keysFunc The function to get the keys of `object`.
+ * @param {Function} symbolsFunc The function to get the symbols of `object`.
+ * @returns {Array} Returns the array of property names and symbols.
+ */
+function baseGetAllKeys(object, keysFunc, symbolsFunc) {
+  var result = keysFunc(object);
+  return isArray(object) ? result : arrayPush(result, symbolsFunc(object));
+}
+
+module.exports = baseGetAllKeys;
+
+
+/***/ }),
+
+/***/ 2224:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var memoize = __webpack_require__(104);
+
+/** Used as the maximum memoize cache size. */
+var MAX_MEMOIZE_SIZE = 500;
+
+/**
+ * A specialized version of `_.memoize` which clears the memoized function's
+ * cache when it exceeds `MAX_MEMOIZE_SIZE`.
+ *
+ * @private
+ * @param {Function} func The function to have its output memoized.
+ * @returns {Function} Returns the new memoized function.
+ */
+function memoizeCapped(func) {
+  var result = memoize(func, function(key) {
+    if (cache.size === MAX_MEMOIZE_SIZE) {
+      cache.clear();
+    }
+    return key;
+  });
+
+  var cache = result.cache;
+  return result;
+}
+
+module.exports = memoizeCapped;
+
+
+/***/ }),
+
+/***/ 2271:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var copyObject = __webpack_require__(1791),
+    getSymbols = __webpack_require__(4664);
+
+/**
+ * Copies own symbols of `source` to `object`.
+ *
+ * @private
+ * @param {Object} source The object to copy symbols from.
+ * @param {Object} [object={}] The object to copy symbols to.
+ * @returns {Object} Returns `object`.
+ */
+function copySymbols(source, object) {
+  return copyObject(source, getSymbols(source), object);
+}
+
+module.exports = copySymbols;
 
 
 /***/ }),
@@ -32392,7 +33293,7 @@ Plugin.register('azurelib_utils', {
     icon: 'azureicon.png',
     description: 'Create models, textures, and animations for AzureLib-powered mods using Bedrock-style tools.',
     tags: ['Minecraft: Java Edition'],
-    version: '2.3.0',
+    version: '2.3.1',
     variant: 'both',
     min_version: '4.8.0',
     website: 'https://wiki.azuredoom.com/',
@@ -32405,12 +33306,12 @@ Plugin.register('azurelib_utils', {
     has_changelog: true,
   
     onload() {
-      const { loadAzureLib } = __webpack_require__(2341);
+      const { loadAzureLib } = __webpack_require__(1910);
       loadAzureLib();
     },
   
     onunload() {
-      const { unloadAzureLib } = __webpack_require__(2341);
+      const { unloadAzureLib } = __webpack_require__(1910);
       unloadAzureLib();
     }
   });
