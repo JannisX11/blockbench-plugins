@@ -8,7 +8,7 @@
   - Built-in **PAL Bend Player** and **PAL DragonCore Player** rigs when paired with **PAL Bend Player Tools** (`0.4.2+`).
   - **Vanilla Entity** templates with vanilla skins loaded automatically.
 - **PAL / MoreRotation Bend Support**: Detects standard PAL and DragonCore rigs, exports strict 3-axis `[x, y, z]` `bend` vectors, and supports importing PAL, Emotecraft (`.emote`), DragonCore, or Bedrock animations onto individual actors. Basic `*_bend` export also works standalone.
-- **Scene Camera & Event Markers**: Add a non-exported scene camera (`kltyton:interactions.<anim>.camera`), preview through it at any frame (`Look Through Camera`), and insert `timeline` event markers.
+- **Scene Camera & Event Markers**: Add a non-exported scene camera (`interactive_animation:interactions.<anim>.camera`), preview through it at any frame (`Look Through Camera`), and insert `timeline` event markers.
 - **Round-Trip Import & Export**: Export selected or all animations to `.animation.json`, and import existing AnimCue `.animation.json` files back into the scene.
 - **Desktop & Web, Multi-Language**: Works on Blockbench Desktop and Web (`5.0.0+`), with automatic English / Simplified Chinese / Traditional Chinese UI.
 
