@@ -1,0 +1,18 @@
+{
+	"1.0.0": {
+		"title": "1.0 - Initial Release",
+		"date": "2026-10-03",
+		"author": "Muta & ChatGPT",
+		"categories": [
+			{
+				"title": "Initial Release",
+				"list": [
+					"Add transformable animated references from other open Blockbench projects.",
+					"Synchronize reference animations with timeline scrubbing and playback.",
+					"Match animations by exact name or final logical name segment.",
+					"Support multiple references, source switching, refresh, unload, and diagnostic tools."
+				]
+			}
+		]
+	}
+}
