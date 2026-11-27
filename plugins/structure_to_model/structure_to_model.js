@@ -1,1 +1,1651 @@
-class O{#e;#r;#n=new Uint8Array(3);#o=0;get encoding(){return"mutf-8"}get fatal(){return this.#e}get ignoreBOM(){return this.#r}constructor(e="mutf-8",t={}){let n=e.toLowerCase();if(n!=="mutf-8"&&n!=="mutf8")throw RangeError(`MUtf8Decoder.constructor: '${e}' is not supported.`);this.#e=t.fatal??!1,this.#r=t.ignoreBOM??!1}decode(e,t={}){let n=t.stream??!1,r=this.#s(e),s=r.length,o=Array(s),i=0,c=0;while(i<s){let u=r[i++];if(!(u&128)&&u!==0)o[c++]=u;else if((u&224)===192){if(s<=i){if(n){this.#c(r,i-1);break}o[c++]=this.#t();continue}let a=r[i++];if((a&192)!==128){o[c++]=this.#t(),i--;continue}o[c++]=(u&31)<<6|a&63}else if((u&240)===224){if(s<=i+1){if(n){this.#c(r,i-1);break}o[c++]=this.#t();continue}let a=r[i++];if((a&192)!==128){o[c++]=this.#t(),i--;continue}let l=r[i++];if((l&192)!==128){o[c++]=this.#t(),i-=2;continue}if(i===3&&u===239&&a===187&&l===191&&!this.ignoreBOM)continue;o[c++]=(u&15)<<12|(a&63)<<6|l&63}else o[c++]=this.#t()}return String.fromCharCode(...c===o.length?o:o.slice(0,c))}#s(e){let t;if(e instanceof Uint8Array)t=e;else if("buffer"in e)t=new Uint8Array(e.buffer,e.byteOffset);else t=new Uint8Array(e);if(!this.#o)return t;let n=new Uint8Array(this.#o+t.byteLength);return n.set(this.#n.subarray(0,this.#o)),n.set(t,this.#o),this.#o=0,n}#c(e,t){this.#n.set(e.subarray(t)),this.#o=e.length-t}#t(){if(this.fatal)throw TypeError("MUtf8Decoder.decode: Decoding failed.");return 65533}}class S{data;rootName;endian;compression;bedrockLevel;#e=null;constructor(e,t={}){if(e instanceof S){if(t.rootName===void 0)t.rootName=e.rootName;if(t.endian===void 0)t.endian=e.endian;if(t.compression===void 0)t.compression=e.compression;if(t.bedrockLevel===void 0)t.bedrockLevel=e.bedrockLevel;e=e.data}let{rootName:n="",endian:r="big",compression:s=null,bedrockLevel:o=!1}=t;this.data=e,this.rootName=n,this.endian=r,this.compression=s,this.bedrockLevel=o}get byteOffset(){return this.#e}set byteOffset(e){this.#e=e}get[Symbol.toStringTag](){return"NBTData"}}var T=Symbol.for("nodejs.util.inspect.custom");class B extends Number{constructor(e){super(e<<24>>24)}valueOf(){return super.valueOf()}get[Symbol.toStringTag](){return"Int8"}get[T](){return(e,{stylize:t})=>t(`${this.valueOf()}b`,"number")}}class A extends Number{constructor(e){super(e<<16>>16)}valueOf(){return super.valueOf()}get[Symbol.toStringTag](){return"Int16"}get[T](){return(e,{stylize:t})=>t(`${this.valueOf()}s`,"number")}}class M extends Number{constructor(e){super(e|0)}valueOf(){return super.valueOf()}get[Symbol.toStringTag](){return"Int32"}get[T](){return()=>this.valueOf()}}class C extends Number{constructor(e){super(e)}valueOf(){return super.valueOf()}get[Symbol.toStringTag](){return"Float32"}get[T](){return(e,{stylize:t})=>t(`${this.valueOf()}f`,"number")}}var g;(function(e){e[e.END=0]="END",e[e.BYTE=1]="BYTE",e[e.SHORT=2]="SHORT",e[e.INT=3]="INT",e[e.LONG=4]="LONG",e[e.FLOAT=5]="FLOAT",e[e.DOUBLE=6]="DOUBLE",e[e.BYTE_ARRAY=7]="BYTE_ARRAY",e[e.STRING=8]="STRING",e[e.LIST=9]="LIST",e[e.COMPOUND=10]="COMPOUND",e[e.INT_ARRAY=11]="INT_ARRAY",e[e.LONG_ARRAY=12]="LONG_ARRAY"})(g||(g={}));Object.freeze(g);var z=Symbol("nbtify.tag.type");function V(e){return typeof e==="number"&&e in g}async function D(e,t){let n=new DecompressionStream(t);return ve(e,n)}async function ve(e,{readable:t,writable:n}){let r=n.getWriter();r.write(e).catch(()=>{}),r.close().catch(()=>{});let s=[],o=0,i=ke(t);for await(let a of i)s.push(a),o+=a.byteLength;let c=new Uint8Array(o),u=0;for(let a of s)c.set(a,u),u+=a.byteLength;return c}function ke(e){if(typeof e[Symbol.asyncIterator]>"u")return Se(e);return e}async function*Se(e){let t=e.getReader();try{while(!0){let{done:n,value:r}=await t.read();if(n)return;yield r}}finally{t.releaseLock()}}async function x(e,t={}){if(e instanceof Blob)e=await e.arrayBuffer();if(!("byteOffset"in e))e=new Uint8Array(e);if(!(e instanceof Uint8Array))throw TypeError("First parameter must be a Uint8Array, ArrayBuffer, SharedArrayBuffer, or Blob");let n=new j(e,t.endian!=="big",t.endian==="little-varint"),{rootName:r,endian:s,compression:o,bedrockLevel:i,strict:c=!0}=t;if(r!==void 0&&typeof r!=="boolean"&&typeof r!=="string"&&r!==null)throw TypeError("Root Name option must be a boolean, string, or null");if(s!==void 0&&s!=="big"&&s!=="little"&&s!=="little-varint")throw TypeError("Endian option must be a valid endian type");if(o!==void 0&&o!=="deflate"&&o!=="deflate-raw"&&o!=="gzip"&&o!==null)throw TypeError("Compression option must be a valid compression type");if(i!==void 0&&typeof i!=="boolean"&&typeof i!=="number"&&i!==null)throw TypeError("Bedrock Level option must be a boolean, number, or null");if(typeof c!=="boolean")throw TypeError("Strict option must be a boolean");e:if(o===void 0){switch(!0){case n.hasGzipHeader():o="gzip";break e;case n.hasZlibHeader():o="deflate";break e}try{return await x(e,{...t,compression:null})}catch(u){try{return await x(e,{...t,compression:"deflate-raw"})}catch{throw u}}}if(s===void 0)try{return await x(e,{...t,endian:"big"})}catch(u){try{return await x(e,{...t,endian:"little"})}catch{try{return await x(e,{...t,endian:"little-varint"})}catch{throw u}}}if(r===void 0)try{return await x(e,{...t,rootName:!0})}catch(u){try{return await x(e,{...t,rootName:!1})}catch{throw u}}if(o!==null)e=await D(e,o);if(i===void 0)i=n.hasBedrockLevelHeader(s);return n.readRoot({rootName:r,endian:s,compression:o,bedrockLevel:i,strict:c})}class j{#e=0;#r;#n;#o;#s;#c=new O;constructor(e,t,n){this.#r=e,this.#n=new DataView(e.buffer,e.byteOffset,e.byteLength),this.#o=t,this.#s=n}hasGzipHeader(){return this.#n.getUint16(0,!1)===8075}hasZlibHeader(){return this.#n.getUint8(0)===120}hasBedrockLevelHeader(e){if(e!=="little"||this.#r.byteLength<8)return!1;return this.#n.getUint32(4,!0)===this.#r.byteLength-8}#t(e){if(this.#e+e>this.#r.byteLength)throw Error("Ran out of bytes to read, unexpectedly reached the end of the buffer")}async readRoot({rootName:e,endian:t,compression:n,bedrockLevel:r,strict:s}){if(n!==null)this.#r=await D(this.#r,n),this.#n=new DataView(this.#r.buffer);if(r)this.#m(),this.#m();let o=this.#f();if(o!==g.LIST&&o!==g.COMPOUND)throw Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${o}'`);let i=typeof e==="string"||e?this.#d():null;if(typeof e==="string"&&i!==e)throw Error(`Expected root name '${e}', encountered '${i}'`);let c=this.#l(o);if(s&&this.#r.byteLength>this.#e){let a=this.#r.byteLength-this.#e;throw Error(`Encountered unexpected End tag at byte offset ${this.#e}, ${a} unread bytes remaining`)}let u=new S(c,{rootName:i,endian:t,compression:n,bedrockLevel:r});if(!s)u.byteOffset=this.#e;return u}#l(e){switch(e){case g.END:{let t=this.#r.byteLength-this.#e;throw Error(`Encountered unexpected End tag at byte offset ${this.#e}, ${t} unread bytes remaining`)}case g.BYTE:return this.#u();case g.SHORT:return this.#b();case g.INT:return this.#s?this.#a():this.#i();case g.LONG:return this.#s?this.#x():this.#g();case g.FLOAT:return this.#w();case g.DOUBLE:return this.#_();case g.BYTE_ARRAY:return this.#v();case g.STRING:return this.#d();case g.LIST:return this.#k();case g.COMPOUND:return this.#S();case g.INT_ARRAY:return this.#T();case g.LONG_ARRAY:return this.#M();default:throw Error(`Encountered unsupported tag type '${e}' at byte offset ${this.#e}`)}}#f(){let e=this.#h();if(!V(e))throw Error(`Encountered unsupported tag type '${e}' at byte offset ${this.#e}`);return e}#h(){this.#t(1);let e=this.#n.getUint8(this.#e);return this.#e+=1,e}#u(e=!1){this.#t(1);let t=this.#n.getInt8(this.#e);return this.#e+=1,e?t:new B(t)}#p(){this.#t(2);let e=this.#n.getUint16(this.#e,this.#o);return this.#e+=2,e}#b(e=!1){this.#t(2);let t=this.#n.getInt16(this.#e,this.#o);return this.#e+=2,e?t:new A(t)}#m(){this.#t(4);let e=this.#n.getUint32(this.#e,this.#o);return this.#e+=4,e}#i(e=!1){this.#t(4);let t=this.#n.getInt32(this.#e,this.#o);return this.#e+=4,e?t:new M(t)}#y(){let e=0,t=0,n;while(!0){if(n=this.#u(!0),e|=(n&127)<<t,(n&128)===0)break;t+=7}return e}#a(e=!1){let t=0,n=0;while(!0){this.#t(1);let s=this.#u(!0);if(t|=(s&127)<<n,!(s&128))break;if(n+=7,n>63)throw Error(`VarInt size '${n}' at byte offset ${this.#e} is too large`)}let r=(t<<63>>63^t)>>1^t&-2147483648;return e?r:new M(r)}#g(){this.#t(8);let e=this.#n.getBigInt64(this.#e,this.#o);return this.#e+=8,e}#x(){let e=0n,t=0n;while(!0){this.#t(1);let r=this.#u(!0);if(e|=(BigInt(r)&0x7fn)<<t,!(r&128))break;if(t+=7n,t>63n)throw Error(`VarLong size '${t}' at byte offset ${this.#e} is too large`)}return e>>1n^-(e&1n)}#w(e=!1){this.#t(4);let t=this.#n.getFloat32(this.#e,this.#o);return this.#e+=4,e?t:new C(t)}#_(){this.#t(8);let e=this.#n.getFloat64(this.#e,this.#o);return this.#e+=8,e}#v(){let e=this.#s?this.#a(!0):this.#i(!0);this.#t(e);let t=new Int8Array(this.#r.subarray(this.#e,this.#e+e));return this.#e+=e,t}#d(){let e=this.#s?this.#y():this.#p();this.#t(e);let t=this.#c.decode(this.#r.subarray(this.#e,this.#e+e));return this.#e+=e,t}#k(){let e=this.#f(),t=this.#s?this.#a(!0):this.#i(!0),n=[];Object.defineProperty(n,z,{configurable:!0,enumerable:!1,writable:!0,value:e});for(let r=0;r<t;r++){let s=this.#l(e);n.push(s)}return n}#S(){let e={};while(!0){let t=this.#f();if(t===g.END)break;let n=this.#d(),r=this.#l(t);e[n]=r}return e}#T(){let e=this.#s?this.#a(!0):this.#i(!0),t=new Int32Array(e);for(let n in t){let r=this.#i(!0);t[n]=r}return t}#M(){let e=this.#s?this.#a(!0):this.#i(!0),t=new BigInt64Array(e);for(let n in t){let r=this.#g();t[n]=r}return t}}class _{static async fromBuffer(e){let t=await x(new Uint8Array(e));return _.parseRoot(t.data)}static parseRoot(e){let t=e.size,n=[Number(t[0]),Number(t[1]),Number(t[2])],r=e.palette.map(_.parsePaletteEntry),s=e.blocks.map(_.parseBlock);return{size:n,palette:r,blocks:s}}static parsePaletteEntry(e){let t=String(e.Name),n=e.Properties,r={};if(n){for(let[s,o]of Object.entries(n))if(o!==void 0)r[s]=String(o)}return{name:t,properties:r}}static parseBlock(e){let t=e.pos,n=[Number(t[0]),Number(t[1]),Number(t[2])],r=Number(e.state);return{pos:n,state:r}}}function Te(e){return new Promise((t,n)=>{Filesystem.readFile([e],{readtype:"text"},(r)=>{let s=r[0];if(!s?.content){n(Error(`Cannot read: ${e}`));return}t(s.content)})})}async function R(e){let t=await Te(e);return JSON.parse(t)}function E(e){let t=e.indexOf(":");if(t===-1)return["minecraft",e];return[e.slice(0,t),e.slice(t+1)]}function Y(e,t){let[n,r]=E(t);return`${e}/${n}/blockstates/${r}.json`}function J(e,t){let[n,r]=E(t);return`${e}/${n}/models/${r}.json`}function H(e,t){if("variants"in e)return Me(e.variants,t);if("multipart"in e)return Re(e.multipart,t);return[]}function Me(e,t){let n="",r=-1;for(let i of Object.keys(e)){if(i===""){if(r<0)n=i,r=0;continue}let c=i.split(",");if(c.length<=r)continue;if(c.every((a)=>{let l=a.indexOf("="),f=t[a.slice(0,l)];return f===void 0||f===a.slice(l+1)}))n=i,r=c.length}let s=e[n];if(!s)return[];let o=Array.isArray(s)?s[0]:s;return[{model:o.model,x:o.x,y:o.y,uvlock:o.uvlock}]}function Re(e,t){let n=[];for(let r of e){if(r.when&&!Ee(r.when,t))continue;let s=Array.isArray(r.apply)?r.apply[0]:r.apply;n.push({model:s.model,x:s.x,y:s.y,uvlock:s.uvlock})}return n}function Ee(e,t){let n=e.OR;if(Array.isArray(n))return n.some((r)=>W(r,t));return W(e,t)}function W(e,t){return Object.entries(e).every(([n,r])=>r.split("|").includes(t[n]??""))}async function K(e,t,n){if(n.has(t))return n.get(t);let r=await Ce(e,t),s={};for(let c=r.length-1;c>=0;c--)Object.assign(s,r[c].textures);let o=[];for(let c of r)if(c.elements?.length){o=c.elements.map((u)=>Ae(u,s));break}let i={elements:o};return n.set(t,i),i}function Oe(e,t){let n=e,r=new Set;while(n.startsWith("#")){if(r.has(n))return;r.add(n);let s=t[n.slice(1)];if(s===void 0)return;n=s}return n}function Be(e,t,n){let[r,s,o]=e,[i,c,u]=t;switch(n){case"down":return[r,o,i,u];case"up":return[r,o,i,u];case"north":return[16-i,16-c,16-r,16-s];case"south":return[r,16-c,i,16-s];case"west":return[o,16-c,u,16-s];case"east":return[16-u,16-c,16-o,16-s];default:return[0,0,16,16]}}function Ae(e,t){let n={};for(let[s,o]of Object.entries(e.faces??{})){if(!o||!o.texture)continue;let i=Oe(o.texture,t);if(!i)continue;let c=o.uv?[o.uv[0],o.uv[1],o.uv[2],o.uv[3]]:Be(e.from,e.to,s),u={texture:i,uv:c};if(o.rotation!==void 0)u.rotation=o.rotation;if(o.tintindex!==void 0)u.tintindex=o.tintindex;n[s]=u}let r={from:[e.from[0],e.from[1],e.from[2]],to:[e.to[0],e.to[1],e.to[2]],faces:n};if(e.rotation){let s=e.rotation,o=s.axis;if(o==="x"||o==="y"||o==="z")r.rotation={origin:[s.origin[0],s.origin[1],s.origin[2]],axis:o,angle:s.angle}}return r}async function Ce(e,t){let n=[],r=t,s=new Set;while(r){if(s.has(r))break;s.add(r);try{let o=await R(J(e,r));n.push(o),r=o.parent}catch{break}}return n}var De=new Set(["minecraft:oak_button","minecraft:spruce_button","minecraft:birch_button","minecraft:jungle_button","minecraft:acacia_button","minecraft:dark_oak_button","minecraft:mangrove_button","minecraft:cherry_button","minecraft:bamboo_button","minecraft:crimson_button","minecraft:warped_button","minecraft:stone_button","minecraft:polished_blackstone_button","minecraft:lever"]);function v([e,t,n]){return[16-n,t,e]}function I([e,t,n]){return[e,16-n,t]}function Ie(e,t){return[[Math.min(e[0],t[0]),Math.min(e[1],t[1]),Math.min(e[2],t[2])],[Math.max(e[0],t[0]),Math.max(e[1],t[1]),Math.max(e[2],t[2])]]}function Z(e,t){if(e==="x")return{axis:"z",angle:t};if(e==="z")return{axis:"x",angle:-t};return{axis:e,angle:t}}function Fe(e,t){if(e==="y")return{axis:"z",angle:t};if(e==="z")return{axis:"y",angle:-t};return{axis:e,angle:t}}function Pe(e){let t={};if(e.north!==void 0)t.up=e.north;if(e.up!==void 0)t.south=e.up;if(e.south!==void 0)t.down=e.south;if(e.down!==void 0)t.north=e.down;if(e.east!==void 0)t.east=e.east;if(e.west!==void 0)t.west=e.west;return t}function q(e){let t={};if(e.north!==void 0)t.east=e.north;if(e.east!==void 0)t.south=e.east;if(e.south!==void 0)t.west=e.south;if(e.west!==void 0)t.north=e.west;if(e.up!==void 0)t.up=e.up;if(e.down!==void 0)t.down=e.down;return t}function Q(e,t,n){let r=Math.round((t.x??0)/90)&3,s=Math.round((t.y??0)/90)&3;if(!r&&!s)return e;return e.map((o)=>{let i=[...o.from],c=[...o.to],u=o.rotation?[...o.rotation.origin]:void 0,a=o.rotation?.axis,l=o.rotation?.angle,f=o.faces;for(let h=0;h<r;h++){if(i=I(i),c=I(c),u)u=I(u);if(a!==void 0&&l!==void 0)({axis:a,angle:l}=Fe(a,l));f=Pe(f)}for(let h=0;h<s;h++){if(i=v(i),c=v(c),u)u=v(u);if(a!==void 0&&l!==void 0)({axis:a,angle:l}=Z(a,l));f=q(f)}if(r>0&&n&&De.has(n))for(let h=0;h<2;h++){if(i=v(i),c=v(c),u)u=v(u);if(a!==void 0&&l!==void 0)({axis:a,angle:l}=Z(a,l));f=q(f)}let[m,d]=Ie(i,c);return{from:m,to:d,rotation:o.rotation&&u&&a!==void 0&&l!==void 0?{origin:u,axis:a,angle:l}:void 0,faces:f}})}var k=new Map,F=new Set;function X(){F.clear()}function G(){return F}function ee(e,t){let[n,r]=E(t);return`${e}/${n}/textures/${r}.png`}function P(e,t){let n=ee(e,t);if(k.has(n))return k.get(n);let r=t.split("/"),s=r[r.length-1],o=new Texture({name:s,path:n}).fromPath(n).add(!1);return k.set(n,o),o}function te(e,t,n){let s=`${ee(e,t)}|${n}`;if(k.has(s))return k.get(s);let o=P(e,t),i=parseInt(n.slice(1,3),16)/255,c=parseInt(n.slice(3,5),16)/255,u=parseInt(n.slice(5,7),16)/255,a=t.split("/"),l=a[a.length-1],f=new Texture({name:l}).add(!1);F.add(f),k.set(s,f);let m=new Image;return m.onload=()=>{try{let d=document.createElement("canvas");d.width=m.naturalWidth,d.height=m.naturalHeight;let h=d.getContext("2d");h.drawImage(m,0,0);let y=h.getImageData(0,0,d.width,d.height),p=y.data;for(let b=0;b<p.length;b+=4)p[b]=(p[b]??0)*i,p[b+1]=(p[b+1]??0)*c,p[b+2]=(p[b+2]??0)*u;h.putImageData(y,0,0),f.fromDataURL(d.toDataURL("image/png"))}catch(d){console.warn(`Failed to tint texture ${t}`,d)}},m.onerror=()=>console.warn(`Failed to load texture for tinting: ${t}`),m.src=o.source,f}var Ne=new Set(["minecraft:glass","minecraft:glass_pane","minecraft:tinted_glass","minecraft:white_stained_glass","minecraft:white_stained_glass_pane","minecraft:orange_stained_glass","minecraft:orange_stained_glass_pane","minecraft:magenta_stained_glass","minecraft:magenta_stained_glass_pane","minecraft:light_blue_stained_glass","minecraft:light_blue_stained_glass_pane","minecraft:yellow_stained_glass","minecraft:yellow_stained_glass_pane","minecraft:lime_stained_glass","minecraft:lime_stained_glass_pane","minecraft:pink_stained_glass","minecraft:pink_stained_glass_pane","minecraft:gray_stained_glass","minecraft:gray_stained_glass_pane","minecraft:light_gray_stained_glass","minecraft:light_gray_stained_glass_pane","minecraft:cyan_stained_glass","minecraft:cyan_stained_glass_pane","minecraft:purple_stained_glass","minecraft:purple_stained_glass_pane","minecraft:blue_stained_glass","minecraft:blue_stained_glass_pane","minecraft:brown_stained_glass","minecraft:brown_stained_glass_pane","minecraft:green_stained_glass","minecraft:green_stained_glass_pane","minecraft:red_stained_glass","minecraft:red_stained_glass_pane","minecraft:black_stained_glass","minecraft:black_stained_glass_pane","minecraft:oak_trapdoor","minecraft:jungle_trapdoor","minecraft:acacia_trapdoor","minecraft:mangrove_trapdoor","minecraft:cherry_trapdoor","minecraft:bamboo_trapdoor","minecraft:crimson_trapdoor","minecraft:warped_trapdoor","minecraft:iron_trapdoor","minecraft:copper_trapdoor","minecraft:exposed_copper_trapdoor","minecraft:weathered_copper_trapdoor","minecraft:oxidized_copper_trapdoor","minecraft:waxed_copper_trapdoor","minecraft:waxed_exposed_copper_trapdoor","minecraft:waxed_weathered_copper_trapdoor","minecraft:waxed_oxidized_copper_trapdoor","minecraft:oak_leaves","minecraft:spruce_leaves","minecraft:birch_leaves","minecraft:jungle_leaves","minecraft:acacia_leaves","minecraft:dark_oak_leaves","minecraft:mangrove_leaves","minecraft:mangrove_roots","minecraft:cherry_leaves","minecraft:pale_oak_leaves","minecraft:azalea_leaves","minecraft:flowering_azalea_leaves"]),Le={north:"south",south:"north",east:"west",west:"east",up:"down",down:"up"},Ue={north:[0,0,-1],south:[0,0,1],east:[1,0,0],west:[-1,0,0],up:[0,1,0],down:[0,-1,0]};function oe([e,t,n]){return`${e},${t},${n}`}function ne(e,t){switch(t){case"north":return e.from[2];case"south":return e.to[2];case"west":return e.from[0];case"east":return e.to[0];case"down":return e.from[1];case"up":return e.to[1]}}function re(e,t){let[n,r,s]=e.from,[o,i,c]=e.to;switch(t){case"north":case"south":return[n,r,o,i];case"west":case"east":return[s,r,c,i];case"down":case"up":return[n,s,o,c]}}function $e(e,t){let[n,r,s,o]=e;if(n>=s||r>=o)return!0;for(let[a,l,f,m]of t)if(a<=n&&f>=s&&l<=r&&m>=o)return!0;let i=t.map(([a,l,f,m])=>[Math.max(a,n),Math.max(l,r),Math.min(f,s),Math.min(m,o)]).filter(([a,l,f,m])=>a<f&&l<m);if(!i.length)return!1;let c=new Set([r,o]);for(let[,a,,l]of i)c.add(a),c.add(l);let u=[...c].filter((a)=>a>=r&&a<o).sort((a,l)=>a-l);for(let a of u){let l=i.filter(([,m,,d])=>m<=a&&d>a).map(([m,,d])=>[m,d]);l.sort(([m],[d])=>m-d);let f=n;for(let[m,d]of l){if(m>f)return!1;f=Math.max(f,d)}if(f<s)return!1}return!0}function se(e,t,n){let r=new Map;for(let s of e){let o=t[s.state],i=n[s.state]?.name??"";if(o?.length)r.set(oe(s.pos),{elements:o,name:i})}return r}function ie(e,t,n){return e.map((r)=>{if(r.rotation&&(r.rotation.axis==="x"||r.rotation.axis==="z"))return r;let s={...r.faces};for(let o of Object.keys(s)){let i=ne(r,o);if(i!==0&&i!==16)continue;let c=Ue[o],u=oe([t[0]+c[0],t[1]+c[1],t[2]+c[2]]),a=n.get(u);if(!a)continue;if(Ne.has(a.name))continue;let l=Le[o],f=i===0?16:0,m=a.elements.filter((d)=>ne(d,l)===f).map((d)=>re(d,l));if($e(re(r,o),m))delete s[o]}return{...r,faces:s}})}async function ue(e,t,n,r,s){let o=new Map;X(),Blockbench.setProgress(0);let i=await ze(t.palette,n,o),c=se(t.blocks,i,t.palette),u=t.blocks.length,a=0;Undo.initEdit({outliner:!0,elements:[],textures:[]});let l=new Group({name:e,origin:[0,0,0]});l.addTo().init();for(let f=0;f<u;f++){let m=t.blocks[f],d=t.palette[m.state];if(!d)continue;let h=i[m.state]??[];if(!h.length)continue;let y=ie(h,m.pos,c);a+=ae(h)-ae(y);let p=y.filter((w)=>Object.keys(w.faces).length>0);if(!p.length)continue;let b=d.name.includes(":")?d.name.split(":")[1]:d.name;if(p.length===1)ce(b,m.pos,p[0],r,n,s).addTo(l).init();else{let w=new Group({name:b,origin:[0,0,0]});w.addTo(l).init();for(let _e of p)ce(void 0,m.pos,_e,r,n,s).addTo(w).init()}if(f%100===0)Blockbench.setProgress(0.3+f/u*0.7),Blockbench.showQuickMessage(`Importing… ${f}/${u} blocks`,500),await new Promise((w)=>setTimeout(w,0))}Undo.finishEdit(`Import structure: ${e}`),Canvas.updateAll(),updateInterface(),Blockbench.setProgress(1),Blockbench.showQuickMessage(`Done: ${u} blocks · ${t.size.join("×")} · ${a} faces culled`,5000),setTimeout(()=>Blockbench.setProgress(0),1500)}function ae(e){return e.reduce((t,n)=>t+Object.keys(n.faces).length,0)}function ce(e,t,n,r,s,o){let i={};for(let a of Object.keys(n.faces)){let l=n.faces[a];try{let d={texture:l.tintindex!==void 0&&o!==void 0?te(s,l.texture,o):P(s,l.texture),uv:l.uv,enabled:!0};if(l.rotation!==void 0)d.rotation=l.rotation;i[a]=d}catch{}}let c={name:e,from:N(t,n.from,r),to:N(t,n.to,r),autouv:0,faces:i};if(n.rotation){let a=n.rotation;c.origin=N(t,a.origin,r),c.rotation=[a.axis==="x"?a.angle:0,a.axis==="y"?a.angle:0,a.axis==="z"?a.angle:0]}let u=new Cube(c);for(let a of Object.keys(u.faces))if(!i[a])u.faces[a].texture=null;return u}async function ze(e,t,n){let r=[];for(let s=0;s<e.length;s++)r.push(await Ve(e[s],t,n)),Blockbench.setProgress(s/e.length*0.3),await new Promise((o)=>setTimeout(o,0));return r}async function Ve(e,t,n){let r;try{r=await R(Y(t,e.name))}catch{return[]}let s;try{s=H(r,e.properties)}catch{return[]}let o=[];for(let i of s)try{let c=await K(t,i.model,n),u=Q(c.elements,i,e.name);o.push(...u)}catch{}return o}function N(e,t,n){return[(e[0]*16+t[0])/n,(e[1]*16+t[1])/n,(e[2]*16+t[2])/n]}var me="stm_asset_root",ge="stm_scale",he="stm_tint_preset",pe="stm_tint_color",be="stm_pack_root",ye="stm_tint_path",je={plains:"#79C05A",jungle:"#59C93C",swamp:"#6A7039",desert:"#BFB755",snowy:"#80B497"};function le(){return localStorage.getItem(me)??""}function fe(){return Number(localStorage.getItem(ge)??"16")}function xe(){return localStorage.getItem(he)??"none"}function we(){return localStorage.getItem(pe)??"#79C05A"}function Ye(){return localStorage.getItem(be)??""}function Je(){return localStorage.getItem(ye)??""}function We(){let e=xe();if(e==="none")return;if(e==="custom")return we();return je[e]}function He(e,t,n){let r=requireNativeModule("fs");if(!r){Blockbench.showMessageBox({title:"File System Access Required",message:"Could not access the file system to save tinted textures."});return}let s=requireNativeModule("path"),o=n.indexOf(":"),i=o>=0?n.slice(0,o):"minecraft",c=o>=0?n.slice(o+1):n,u=s.join(t,"assets",i,"textures","block",c);r.mkdirSync(u,{recursive:!0});for(let a of e){let l=s.join(u,`${a.name}.png`),f=a.source,m=f.slice(f.indexOf(",")+1),d=atob(m),h=new Uint8Array(d.length);for(let y=0;y<d.length;y++)h[y]=d.charCodeAt(y);r.writeFileSync(l,h),a.fromPath(l)}Blockbench.showQuickMessage(`Saved ${e.size} tinted texture${e.size===1?"":"s"} to resource pack.`,4000)}function Ke(e){new Dialog({id:"stm_save_tinted",title:"Save Tinted Textures",lines:[`<p style="margin:0 0 4px">${e.size} tinted texture${e.size===1?" was":"s were"} generated. Provide a location in your resource pack to save them.</p>`],form:{pack_root:{label:"Resource Pack Root",description:"Folder containing pack.mcmeta",type:"folder",value:Ye()},texture_id:{label:"Target Texture Path",description:"Namespace and path prefix, e.g. example:ship/test",type:"text",value:Je()}},onConfirm(t){let{pack_root:n,texture_id:r}=t;if(!n||!r){Blockbench.showMessageBox({title:"Missing Input",message:"Both the resource pack root and texture path are required."});return}localStorage.setItem(be,n),localStorage.setItem(ye,r);try{He(e,n,r)}catch(s){Blockbench.showMessageBox({title:"Save Error",message:String(s)})}}}).show()}var L,U,de;BBPlugin.register("structure_to_model",{title:"Structure to Model",author:"Mester",icon:"account_balance",description:"Converts Minecraft Java structures (.nbt) into a model.",version:"1.0.0",min_version:"5.0.0",variant:"desktop",tags:["Minecraft: Java Edition","Modeling","Utility"],repository:"https://github.com/MesterMan03/structure-to-model",bug_tracker:"https://github.com/MesterMan03/structure-to-model/issues",creation_date:"2026/05/06",onload:Ze,onunload:qe});function Ze(){de=new Dialog({id:"stm_settings",title:"Structure to Model Settings",form:{asset_root:{label:"Asset Root",description:"Path to the Minecraft assets folder (must contain blockstates/, models/, textures/)",type:"folder",value:le()},scale:{label:"Scale",description:"Divide world coordinates by this value. Scale 16 = 16 blocks fit in one model unit.",type:"number",value:fe(),min:1,step:1},tint_preset:{label:"Tint Preset",description:"Biome tint color applied to leaves, grass, and other tinted block faces.",type:"select",value:xe(),options:{none:"None",plains:"Plains (#79C05A)",jungle:"Jungle (#59C93C)",swamp:"Swamp (#6A7039)",desert:"Desert / Savanna (#BFB755)",snowy:"Snowy Tundra (#80B497)",custom:"Custom…"}},tint_color:{label:"Custom Tint Color",description:"Used only when 'Custom…' is selected above.",type:"color",value:we()}},onConfirm(e){localStorage.setItem(me,e.asset_root),localStorage.setItem(ge,String(e.scale)),localStorage.setItem(he,e.tint_preset),localStorage.setItem(pe,e.tint_color),Blockbench.showQuickMessage("Settings saved.")}}),U=new Action("stm_settings",{name:"STM: Settings",description:"Configure Structure to Model settings",icon:"settings",click:()=>de.show()}),L=new Action("stm_import",{name:"STM: Import Structure",description:"Import a .nbt structure file and convert it to a model",icon:"file_open",click:()=>{Filesystem.importFile({type:"Minecraft Structure",extensions:["nbt"],readtype:"buffer"},async(e)=>{if(!e.length)return;let t=e[0];try{let n=le();if(!n){Blockbench.showMessageBox({title:"Asset Root Not Set",message:"Set the asset root folder in Tools > STM: Settings before importing."});return}let r=fe(),s=We(),o=t.name.replace(/\.nbt$/i,""),i=await _.fromBuffer(t.content);Blockbench.showQuickMessage(`Building ${i.blocks.length} blocks…`),await ue(o,i,n,r,s);let c=G();if(c.size>0)Ke(c)}catch(n){Blockbench.showMessageBox({title:"Structure Import Error",message:String(n)})}})}}),MenuBar.addAction(L,"tools"),MenuBar.addAction(U,"tools")}function qe(){L.delete(),U.delete()}
+// node_modules/mutf-8/dist/index.mjs
+class MUtf8Decoder {
+  #fatal;
+  #ignoreBOM;
+  #leavings = new Uint8Array(3);
+  #leavingsLength = 0;
+  get encoding() {
+    return "mutf-8";
+  }
+  get fatal() {
+    return this.#fatal;
+  }
+  get ignoreBOM() {
+    return this.#ignoreBOM;
+  }
+  constructor(label = "mutf-8", options = {}) {
+    const normalizedLabel = label.toLowerCase();
+    if (normalizedLabel !== "mutf-8" && normalizedLabel !== "mutf8") {
+      throw new RangeError(`MUtf8Decoder.constructor: '${label}' is not supported.`);
+    }
+    this.#fatal = options.fatal ?? false;
+    this.#ignoreBOM = options.ignoreBOM ?? false;
+  }
+  decode(input, options = {}) {
+    const stream = options.stream ?? false;
+    const bytes = this.#toU8Array(input);
+    const length = bytes.length;
+    const codes = new Array(length);
+    let bp = 0;
+    let cp = 0;
+    while (bp < length) {
+      const b1 = bytes[bp++];
+      if (!(b1 & 128) && b1 !== 0) {
+        codes[cp++] = b1;
+      } else if ((b1 & 224) === 192) {
+        if (length <= bp) {
+          if (stream) {
+            this.#setLeavings(bytes, bp - 1);
+            break;
+          }
+          codes[cp++] = this.#handleError();
+          continue;
+        }
+        const b2 = bytes[bp++];
+        if ((b2 & 192) !== 128) {
+          codes[cp++] = this.#handleError();
+          bp--;
+          continue;
+        }
+        codes[cp++] = (b1 & 31) << 6 | b2 & 63;
+      } else if ((b1 & 240) === 224) {
+        if (length <= bp + 1) {
+          if (stream) {
+            this.#setLeavings(bytes, bp - 1);
+            break;
+          }
+          codes[cp++] = this.#handleError();
+          continue;
+        }
+        const b2 = bytes[bp++];
+        if ((b2 & 192) !== 128) {
+          codes[cp++] = this.#handleError();
+          bp--;
+          continue;
+        }
+        const b3 = bytes[bp++];
+        if ((b3 & 192) !== 128) {
+          codes[cp++] = this.#handleError();
+          bp -= 2;
+          continue;
+        }
+        if (bp === 3 && b1 === 239 && b2 === 187 && b3 === 191 && !this.ignoreBOM) {
+          continue;
+        }
+        codes[cp++] = (b1 & 15) << 12 | (b2 & 63) << 6 | b3 & 63;
+      } else {
+        codes[cp++] = this.#handleError();
+      }
+    }
+    return String.fromCharCode(...cp === codes.length ? codes : codes.slice(0, cp));
+  }
+  #toU8Array(input) {
+    let bytes;
+    if (input instanceof Uint8Array) {
+      bytes = input;
+    } else if ("buffer" in input) {
+      bytes = new Uint8Array(input.buffer, input.byteOffset);
+    } else {
+      bytes = new Uint8Array(input);
+    }
+    if (!this.#leavingsLength) {
+      return bytes;
+    }
+    const combined = new Uint8Array(this.#leavingsLength + bytes.byteLength);
+    combined.set(this.#leavings.subarray(0, this.#leavingsLength));
+    combined.set(bytes, this.#leavingsLength);
+    this.#leavingsLength = 0;
+    return combined;
+  }
+  #setLeavings(bytes, startIndex) {
+    this.#leavings.set(bytes.subarray(startIndex));
+    this.#leavingsLength = bytes.length - startIndex;
+  }
+  #handleError() {
+    if (this.fatal) {
+      throw new TypeError("MUtf8Decoder.decode: Decoding failed.");
+    }
+    return 65533;
+  }
+}
+
+// node_modules/nbtify/dist/format.js
+class NBTData {
+  data;
+  rootName;
+  endian;
+  compression;
+  bedrockLevel;
+  #byteOffset = null;
+  constructor(data, options = {}) {
+    if (data instanceof NBTData) {
+      if (options.rootName === undefined) {
+        options.rootName = data.rootName;
+      }
+      if (options.endian === undefined) {
+        options.endian = data.endian;
+      }
+      if (options.compression === undefined) {
+        options.compression = data.compression;
+      }
+      if (options.bedrockLevel === undefined) {
+        options.bedrockLevel = data.bedrockLevel;
+      }
+      data = data.data;
+    }
+    const { rootName = "", endian = "big", compression = null, bedrockLevel = false } = options;
+    this.data = data;
+    this.rootName = rootName;
+    this.endian = endian;
+    this.compression = compression;
+    this.bedrockLevel = bedrockLevel;
+  }
+  get byteOffset() {
+    return this.#byteOffset;
+  }
+  set byteOffset(value) {
+    this.#byteOffset = value;
+  }
+  get [Symbol.toStringTag]() {
+    return "NBTData";
+  }
+}
+
+// node_modules/nbtify/dist/primitive.js
+var CustomInspect = Symbol.for("nodejs.util.inspect.custom");
+
+class Int8 extends Number {
+  constructor(value) {
+    super(value << 24 >> 24);
+  }
+  valueOf() {
+    return super.valueOf();
+  }
+  get [Symbol.toStringTag]() {
+    return "Int8";
+  }
+  get [CustomInspect]() {
+    return (_, { stylize }) => stylize(`${this.valueOf()}b`, "number");
+  }
+}
+
+class Int16 extends Number {
+  constructor(value) {
+    super(value << 16 >> 16);
+  }
+  valueOf() {
+    return super.valueOf();
+  }
+  get [Symbol.toStringTag]() {
+    return "Int16";
+  }
+  get [CustomInspect]() {
+    return (_, { stylize }) => stylize(`${this.valueOf()}s`, "number");
+  }
+}
+
+class Int32 extends Number {
+  constructor(value) {
+    super(value | 0);
+  }
+  valueOf() {
+    return super.valueOf();
+  }
+  get [Symbol.toStringTag]() {
+    return "Int32";
+  }
+  get [CustomInspect]() {
+    return () => this.valueOf();
+  }
+}
+
+class Float32 extends Number {
+  constructor(value) {
+    super(value);
+  }
+  valueOf() {
+    return super.valueOf();
+  }
+  get [Symbol.toStringTag]() {
+    return "Float32";
+  }
+  get [CustomInspect]() {
+    return (_, { stylize }) => stylize(`${this.valueOf()}f`, "number");
+  }
+}
+
+// node_modules/nbtify/dist/tag.js
+var TAG;
+(function(TAG) {
+  TAG[TAG["END"] = 0] = "END";
+  TAG[TAG["BYTE"] = 1] = "BYTE";
+  TAG[TAG["SHORT"] = 2] = "SHORT";
+  TAG[TAG["INT"] = 3] = "INT";
+  TAG[TAG["LONG"] = 4] = "LONG";
+  TAG[TAG["FLOAT"] = 5] = "FLOAT";
+  TAG[TAG["DOUBLE"] = 6] = "DOUBLE";
+  TAG[TAG["BYTE_ARRAY"] = 7] = "BYTE_ARRAY";
+  TAG[TAG["STRING"] = 8] = "STRING";
+  TAG[TAG["LIST"] = 9] = "LIST";
+  TAG[TAG["COMPOUND"] = 10] = "COMPOUND";
+  TAG[TAG["INT_ARRAY"] = 11] = "INT_ARRAY";
+  TAG[TAG["LONG_ARRAY"] = 12] = "LONG_ARRAY";
+})(TAG || (TAG = {}));
+Object.freeze(TAG);
+var TAG_TYPE = Symbol("nbtify.tag.type");
+function isTagType(type) {
+  return typeof type === "number" && type in TAG;
+}
+function getTagType(value) {
+  switch (true) {
+    case value instanceof Int8:
+    case typeof value === "boolean":
+      return TAG.BYTE;
+    case value instanceof Int16:
+      return TAG.SHORT;
+    case value instanceof Int32:
+      return TAG.INT;
+    case typeof value === "bigint":
+      return TAG.LONG;
+    case value instanceof Float32:
+      return TAG.FLOAT;
+    case typeof value === "number":
+      return TAG.DOUBLE;
+    case value instanceof Int8Array:
+    case value instanceof Uint8Array:
+      return TAG.BYTE_ARRAY;
+    case typeof value === "string":
+      return TAG.STRING;
+    case value instanceof Array:
+      return TAG.LIST;
+    case value instanceof Int32Array:
+    case value instanceof Uint32Array:
+      return TAG.INT_ARRAY;
+    case value instanceof BigInt64Array:
+    case value instanceof BigUint64Array:
+      return TAG.LONG_ARRAY;
+    case (typeof value === "object" && value !== null):
+      return TAG.COMPOUND;
+    default:
+      return null;
+  }
+}
+
+// node_modules/nbtify/dist/compression.js
+async function decompress(data, format) {
+  const decompressionStream = new DecompressionStream(format);
+  return pipeThroughCompressionStream(data, decompressionStream);
+}
+async function pipeThroughCompressionStream(data, { readable, writable }) {
+  const writer = writable.getWriter();
+  writer.write(data).catch(() => {});
+  writer.close().catch(() => {});
+  const chunks = [];
+  let byteLength = 0;
+  const iterator = readableStreamToAsyncIterable(readable);
+  for await (const chunk of iterator) {
+    chunks.push(chunk);
+    byteLength += chunk.byteLength;
+  }
+  const result = new Uint8Array(byteLength);
+  let byteOffset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, byteOffset);
+    byteOffset += chunk.byteLength;
+  }
+  return result;
+}
+function readableStreamToAsyncIterable(readable) {
+  if (typeof readable[Symbol.asyncIterator] === "undefined") {
+    return readableStreamToAsyncGenerator(readable);
+  }
+  return readable;
+}
+async function* readableStreamToAsyncGenerator(readable) {
+  const reader = readable.getReader();
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done)
+        return;
+      yield value;
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+// node_modules/nbtify/dist/read.js
+async function read(data, options = {}) {
+  if (data instanceof Blob) {
+    data = await data.arrayBuffer();
+  }
+  if (!("byteOffset" in data)) {
+    data = new Uint8Array(data);
+  }
+  if (!(data instanceof Uint8Array)) {
+    throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, SharedArrayBuffer, or Blob");
+  }
+  const reader = new NBTReader(data, options.endian !== "big", options.endian === "little-varint");
+  let { rootName, endian, compression, bedrockLevel, strict = true } = options;
+  if (rootName !== undefined && typeof rootName !== "boolean" && typeof rootName !== "string" && rootName !== null) {
+    throw new TypeError("Root Name option must be a boolean, string, or null");
+  }
+  if (endian !== undefined && endian !== "big" && endian !== "little" && endian !== "little-varint") {
+    throw new TypeError("Endian option must be a valid endian type");
+  }
+  if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null) {
+    throw new TypeError("Compression option must be a valid compression type");
+  }
+  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean" && typeof bedrockLevel !== "number" && bedrockLevel !== null) {
+    throw new TypeError("Bedrock Level option must be a boolean, number, or null");
+  }
+  if (typeof strict !== "boolean") {
+    throw new TypeError("Strict option must be a boolean");
+  }
+  compression:
+    if (compression === undefined) {
+      switch (true) {
+        case reader.hasGzipHeader():
+          compression = "gzip";
+          break compression;
+        case reader.hasZlibHeader():
+          compression = "deflate";
+          break compression;
+      }
+      try {
+        return await read(data, { ...options, compression: null });
+      } catch (error) {
+        try {
+          return await read(data, { ...options, compression: "deflate-raw" });
+        } catch {
+          throw error;
+        }
+      }
+    }
+  if (endian === undefined) {
+    try {
+      return await read(data, { ...options, endian: "big" });
+    } catch (error) {
+      try {
+        return await read(data, { ...options, endian: "little" });
+      } catch {
+        try {
+          return await read(data, { ...options, endian: "little-varint" });
+        } catch {
+          throw error;
+        }
+      }
+    }
+  }
+  if (rootName === undefined) {
+    try {
+      return await read(data, { ...options, rootName: true });
+    } catch (error) {
+      try {
+        return await read(data, { ...options, rootName: false });
+      } catch {
+        throw error;
+      }
+    }
+  }
+  if (compression !== null) {
+    data = await decompress(data, compression);
+  }
+  if (bedrockLevel === undefined) {
+    bedrockLevel = reader.hasBedrockLevelHeader(endian);
+  }
+  return reader.readRoot({ rootName, endian, compression, bedrockLevel, strict });
+}
+
+class NBTReader {
+  #byteOffset = 0;
+  #data;
+  #view;
+  #littleEndian;
+  #varint;
+  #decoder = new MUtf8Decoder;
+  constructor(data, littleEndian, varint) {
+    this.#data = data;
+    this.#view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    this.#littleEndian = littleEndian;
+    this.#varint = varint;
+  }
+  hasGzipHeader() {
+    const header = this.#view.getUint16(0, false);
+    return header === 8075;
+  }
+  hasZlibHeader() {
+    const header = this.#view.getUint8(0);
+    return header === 120;
+  }
+  hasBedrockLevelHeader(endian) {
+    if (endian !== "little" || this.#data.byteLength < 8)
+      return false;
+    const byteLength = this.#view.getUint32(4, true);
+    return byteLength === this.#data.byteLength - 8;
+  }
+  #allocate(byteLength) {
+    if (this.#byteOffset + byteLength > this.#data.byteLength) {
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
+  }
+  async readRoot({ rootName, endian, compression, bedrockLevel, strict }) {
+    if (compression !== null) {
+      this.#data = await decompress(this.#data, compression);
+      this.#view = new DataView(this.#data.buffer);
+    }
+    if (bedrockLevel) {
+      this.#readUnsignedInt();
+      this.#readUnsignedInt();
+    }
+    const type = this.#readTagType();
+    if (type !== TAG.LIST && type !== TAG.COMPOUND) {
+      throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
+    }
+    const rootNameV = typeof rootName === "string" || rootName ? this.#readString() : null;
+    if (typeof rootName === "string" && rootNameV !== rootName) {
+      throw new Error(`Expected root name '${rootName}', encountered '${rootNameV}'`);
+    }
+    const root = this.#readTag(type);
+    if (strict && this.#data.byteLength > this.#byteOffset) {
+      const remaining = this.#data.byteLength - this.#byteOffset;
+      throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
+    }
+    const result = new NBTData(root, { rootName: rootNameV, endian, compression, bedrockLevel });
+    if (!strict) {
+      result.byteOffset = this.#byteOffset;
+    }
+    return result;
+  }
+  #readTag(type) {
+    switch (type) {
+      case TAG.END: {
+        const remaining = this.#data.byteLength - this.#byteOffset;
+        throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
+      }
+      case TAG.BYTE:
+        return this.#readByte();
+      case TAG.SHORT:
+        return this.#readShort();
+      case TAG.INT:
+        return this.#varint ? this.#readVarIntZigZag() : this.#readInt();
+      case TAG.LONG:
+        return this.#varint ? this.#readVarLongZigZag() : this.#readLong();
+      case TAG.FLOAT:
+        return this.#readFloat();
+      case TAG.DOUBLE:
+        return this.#readDouble();
+      case TAG.BYTE_ARRAY:
+        return this.#readByteArray();
+      case TAG.STRING:
+        return this.#readString();
+      case TAG.LIST:
+        return this.#readList();
+      case TAG.COMPOUND:
+        return this.#readCompound();
+      case TAG.INT_ARRAY:
+        return this.#readIntArray();
+      case TAG.LONG_ARRAY:
+        return this.#readLongArray();
+      default:
+        throw new Error(`Encountered unsupported tag type '${type}' at byte offset ${this.#byteOffset}`);
+    }
+  }
+  #readTagType() {
+    const type = this.#readUnsignedByte();
+    if (!isTagType(type)) {
+      throw new Error(`Encountered unsupported tag type '${type}' at byte offset ${this.#byteOffset}`);
+    }
+    return type;
+  }
+  #readUnsignedByte() {
+    this.#allocate(1);
+    const value = this.#view.getUint8(this.#byteOffset);
+    this.#byteOffset += 1;
+    return value;
+  }
+  #readByte(valueOf = false) {
+    this.#allocate(1);
+    const value = this.#view.getInt8(this.#byteOffset);
+    this.#byteOffset += 1;
+    return valueOf ? value : new Int8(value);
+  }
+  #readUnsignedShort() {
+    this.#allocate(2);
+    const value = this.#view.getUint16(this.#byteOffset, this.#littleEndian);
+    this.#byteOffset += 2;
+    return value;
+  }
+  #readShort(valueOf = false) {
+    this.#allocate(2);
+    const value = this.#view.getInt16(this.#byteOffset, this.#littleEndian);
+    this.#byteOffset += 2;
+    return valueOf ? value : new Int16(value);
+  }
+  #readUnsignedInt() {
+    this.#allocate(4);
+    const value = this.#view.getUint32(this.#byteOffset, this.#littleEndian);
+    this.#byteOffset += 4;
+    return value;
+  }
+  #readInt(valueOf = false) {
+    this.#allocate(4);
+    const value = this.#view.getInt32(this.#byteOffset, this.#littleEndian);
+    this.#byteOffset += 4;
+    return valueOf ? value : new Int32(value);
+  }
+  #readVarInt() {
+    let value = 0;
+    let shift = 0;
+    let byte;
+    while (true) {
+      byte = this.#readByte(true);
+      value |= (byte & 127) << shift;
+      if ((byte & 128) === 0)
+        break;
+      shift += 7;
+    }
+    return value;
+  }
+  #readVarIntZigZag(valueOf = false) {
+    let result = 0;
+    let shift = 0;
+    while (true) {
+      this.#allocate(1);
+      const byte = this.#readByte(true);
+      result |= (byte & 127) << shift;
+      if (!(byte & 128))
+        break;
+      shift += 7;
+      if (shift > 63) {
+        throw new Error(`VarInt size '${shift}' at byte offset ${this.#byteOffset} is too large`);
+      }
+    }
+    const zigzag = (result << 63 >> 63 ^ result) >> 1 ^ result & 1 << 63;
+    return valueOf ? zigzag : new Int32(zigzag);
+  }
+  #readLong() {
+    this.#allocate(8);
+    const value = this.#view.getBigInt64(this.#byteOffset, this.#littleEndian);
+    this.#byteOffset += 8;
+    return value;
+  }
+  #readVarLongZigZag() {
+    let result = 0n;
+    let shift = 0n;
+    while (true) {
+      this.#allocate(1);
+      const byte = this.#readByte(true);
+      result |= (BigInt(byte) & 0x7fn) << shift;
+      if (!(byte & 128))
+        break;
+      shift += 7n;
+      if (shift > 63n) {
+        throw new Error(`VarLong size '${shift}' at byte offset ${this.#byteOffset} is too large`);
+      }
+    }
+    const zigzag = result >> 1n ^ -(result & 1n);
+    return zigzag;
+  }
+  #readFloat(valueOf = false) {
+    this.#allocate(4);
+    const value = this.#view.getFloat32(this.#byteOffset, this.#littleEndian);
+    this.#byteOffset += 4;
+    return valueOf ? value : new Float32(value);
+  }
+  #readDouble() {
+    this.#allocate(8);
+    const value = this.#view.getFloat64(this.#byteOffset, this.#littleEndian);
+    this.#byteOffset += 8;
+    return value;
+  }
+  #readByteArray() {
+    const length = this.#varint ? this.#readVarIntZigZag(true) : this.#readInt(true);
+    this.#allocate(length);
+    const value = new Int8Array(this.#data.subarray(this.#byteOffset, this.#byteOffset + length));
+    this.#byteOffset += length;
+    return value;
+  }
+  #readString() {
+    const length = this.#varint ? this.#readVarInt() : this.#readUnsignedShort();
+    this.#allocate(length);
+    const value = this.#decoder.decode(this.#data.subarray(this.#byteOffset, this.#byteOffset + length));
+    this.#byteOffset += length;
+    return value;
+  }
+  #readList() {
+    const type = this.#readTagType();
+    const length = this.#varint ? this.#readVarIntZigZag(true) : this.#readInt(true);
+    const value = [];
+    Object.defineProperty(value, TAG_TYPE, {
+      configurable: true,
+      enumerable: false,
+      writable: true,
+      value: type
+    });
+    for (let i = 0;i < length; i++) {
+      const entry = this.#readTag(type);
+      value.push(entry);
+    }
+    return value;
+  }
+  #readCompound() {
+    const value = {};
+    while (true) {
+      const type = this.#readTagType();
+      if (type === TAG.END)
+        break;
+      const name = this.#readString();
+      const entry = this.#readTag(type);
+      value[name] = entry;
+    }
+    return value;
+  }
+  #readIntArray() {
+    const length = this.#varint ? this.#readVarIntZigZag(true) : this.#readInt(true);
+    const value = new Int32Array(length);
+    for (const i in value) {
+      const entry = this.#readInt(true);
+      value[i] = entry;
+    }
+    return value;
+  }
+  #readLongArray() {
+    const length = this.#varint ? this.#readVarIntZigZag(true) : this.#readInt(true);
+    const value = new BigInt64Array(length);
+    for (const i in value) {
+      const entry = this.#readLong();
+      value[i] = entry;
+    }
+    return value;
+  }
+}
+
+// src/structure.ts
+class StructureImporter {
+  static async fromBuffer(content) {
+    const nbt = await read(new Uint8Array(content));
+    return StructureImporter.parseRoot(nbt.data);
+  }
+  static parseRoot(root) {
+    const sizeList = root["size"];
+    const size = [
+      Number(sizeList[0]),
+      Number(sizeList[1]),
+      Number(sizeList[2])
+    ];
+    const palette = root["palette"].map(StructureImporter.parsePaletteEntry);
+    const blocks = root["blocks"].map(StructureImporter.parseBlock);
+    return { size, palette, blocks };
+  }
+  static parsePaletteEntry(entry, index) {
+    const name = entry["Name"] ?? entry["id"];
+    if (typeof name !== "string" || !/^(?:[a-z0-9_.-]+:)?[a-z0-9_./-]+$/.test(name)) {
+      throw new Error(`Invalid palette[${index}]: expected a block identifier in Name or id.`);
+    }
+    const propsTag = entry["Properties"] ?? entry["properties"];
+    const properties = {};
+    if (propsTag !== undefined) {
+      if (getTagType(propsTag) !== TAG.COMPOUND) {
+        throw new Error(`Invalid palette[${index}] (${name}): properties must be an NBT compound.`);
+      }
+      for (const [k, v] of Object.entries(propsTag)) {
+        if (v !== undefined)
+          properties[k] = String(v);
+      }
+    }
+    return { name, properties };
+  }
+  static parseBlock(block) {
+    const posList = block["pos"];
+    const pos = [
+      Number(posList[0]),
+      Number(posList[1]),
+      Number(posList[2])
+    ];
+    const state = Number(block["state"]);
+    return { pos, state };
+  }
+}
+
+// src/assets.ts
+function readTextFile(path) {
+  return new Promise((resolve, reject) => {
+    Filesystem.readFile([path], { readtype: "text" }, (files) => {
+      const file = files[0];
+      if (!file?.content) {
+        reject(new Error(`Cannot read: ${path}`));
+        return;
+      }
+      resolve(file.content);
+    });
+  });
+}
+async function readJsonFile(path) {
+  const text = await readTextFile(path);
+  return JSON.parse(text);
+}
+function parseNamespace(id) {
+  const colon = id.indexOf(":");
+  if (colon === -1)
+    return ["minecraft", id];
+  return [id.slice(0, colon), id.slice(colon + 1)];
+}
+function blockstatePath(assetRoot, blockId) {
+  const [ns, name] = parseNamespace(blockId);
+  return `${assetRoot}/${ns}/blockstates/${name}.json`;
+}
+function modelPath(assetRoot, modelId) {
+  const [ns, path] = parseNamespace(modelId);
+  return `${assetRoot}/${ns}/models/${path}.json`;
+}
+
+// src/blockstate.ts
+function resolveBlockstate(json, properties) {
+  if ("variants" in json)
+    return resolveVariants(json.variants, properties);
+  if ("multipart" in json)
+    return resolveMultipart(json.multipart, properties);
+  return [];
+}
+function resolveVariants(variants, properties) {
+  let bestKey = "";
+  let bestScore = -1;
+  for (const key of Object.keys(variants)) {
+    if (key === "") {
+      if (bestScore < 0) {
+        bestKey = key;
+        bestScore = 0;
+      }
+      continue;
+    }
+    const pairs = key.split(",");
+    if (pairs.length <= bestScore)
+      continue;
+    const matches = pairs.every((pair) => {
+      const eq = pair.indexOf("=");
+      const val = properties[pair.slice(0, eq)];
+      return val === undefined || val === pair.slice(eq + 1);
+    });
+    if (matches) {
+      bestKey = key;
+      bestScore = pairs.length;
+    }
+  }
+  const entry = variants[bestKey];
+  if (!entry)
+    return [];
+  const v = Array.isArray(entry) ? entry[0] : entry;
+  return [{ model: v.model, x: v.x, y: v.y, uvlock: v.uvlock }];
+}
+function resolveMultipart(parts, properties) {
+  const refs = [];
+  for (const part of parts) {
+    if (part.when && !matchesWhen(part.when, properties))
+      continue;
+    const v = Array.isArray(part.apply) ? part.apply[0] : part.apply;
+    refs.push({ model: v.model, x: v.x, y: v.y, uvlock: v.uvlock });
+  }
+  return refs;
+}
+function matchesWhen(when, properties) {
+  const orConditions = when.OR;
+  if (Array.isArray(orConditions)) {
+    return orConditions.some((cond) => matchesCondition(cond, properties));
+  }
+  return matchesCondition(when, properties);
+}
+function matchesCondition(cond, properties) {
+  return Object.entries(cond).every(([k, v]) => v.split("|").includes(properties[k] ?? ""));
+}
+
+// src/model.ts
+async function resolveModel(assetRoot, modelId, cache) {
+  if (cache.has(modelId))
+    return cache.get(modelId);
+  const chain = await loadModelChain(assetRoot, modelId);
+  const textures = {};
+  for (let i = chain.length - 1;i >= 0; i--) {
+    Object.assign(textures, chain[i].textures);
+  }
+  let elements = [];
+  for (const model of chain) {
+    if (model.elements?.length) {
+      elements = model.elements.map((e) => parseElement(e, textures));
+      break;
+    }
+  }
+  const resolved = { elements };
+  cache.set(modelId, resolved);
+  return resolved;
+}
+function resolveTexVar(ref, textures) {
+  let current = ref;
+  const visited = new Set;
+  while (current.startsWith("#")) {
+    if (visited.has(current))
+      return;
+    visited.add(current);
+    const next = textures[current.slice(1)];
+    if (next === undefined)
+      return;
+    current = next;
+  }
+  return current;
+}
+function autoUV(from, to, face) {
+  const [x1, y1, z1] = from;
+  const [x2, y2, z2] = to;
+  switch (face) {
+    case "down":
+      return [x1, z1, x2, z2];
+    case "up":
+      return [x1, z1, x2, z2];
+    case "north":
+      return [16 - x2, 16 - y2, 16 - x1, 16 - y1];
+    case "south":
+      return [x1, 16 - y2, x2, 16 - y1];
+    case "west":
+      return [z1, 16 - y2, z2, 16 - y1];
+    case "east":
+      return [16 - z2, 16 - y2, 16 - z1, 16 - y1];
+    default:
+      return [0, 0, 16, 16];
+  }
+}
+function parseElement(e, textures) {
+  const faces = {};
+  for (const [dir, f] of Object.entries(e.faces ?? {})) {
+    if (!f || !f.texture)
+      continue;
+    const resolved = resolveTexVar(f.texture, textures);
+    if (!resolved)
+      continue;
+    const uv = f.uv ? [f.uv[0], f.uv[1], f.uv[2], f.uv[3]] : autoUV(e.from, e.to, dir);
+    const faceData = { texture: resolved, uv };
+    if (f.rotation !== undefined)
+      faceData.rotation = f.rotation;
+    if (f.tintindex !== undefined)
+      faceData.tintindex = f.tintindex;
+    faces[dir] = faceData;
+  }
+  const el = {
+    from: [e.from[0], e.from[1], e.from[2]],
+    to: [e.to[0], e.to[1], e.to[2]],
+    faces
+  };
+  if (e.rotation) {
+    const r = e.rotation;
+    const axis = r.axis;
+    if (axis === "x" || axis === "y" || axis === "z") {
+      el.rotation = {
+        origin: [r.origin[0], r.origin[1], r.origin[2]],
+        axis,
+        angle: r.angle
+      };
+    }
+  }
+  return el;
+}
+async function loadModelChain(assetRoot, startId) {
+  const chain = [];
+  let current = startId;
+  const visited = new Set;
+  while (current) {
+    if (visited.has(current))
+      break;
+    visited.add(current);
+    try {
+      const json = await readJsonFile(modelPath(assetRoot, current));
+      chain.push(json);
+      current = json.parent;
+    } catch {
+      break;
+    }
+  }
+  return chain;
+}
+
+// src/rotation.ts
+var X_ROT_FIX_BLOCKS = new Set([
+  "minecraft:oak_button",
+  "minecraft:spruce_button",
+  "minecraft:birch_button",
+  "minecraft:jungle_button",
+  "minecraft:acacia_button",
+  "minecraft:dark_oak_button",
+  "minecraft:mangrove_button",
+  "minecraft:cherry_button",
+  "minecraft:bamboo_button",
+  "minecraft:crimson_button",
+  "minecraft:warped_button",
+  "minecraft:stone_button",
+  "minecraft:polished_blackstone_button",
+  "minecraft:lever"
+]);
+function rotY90([x, y, z]) {
+  return [16 - z, y, x];
+}
+function rotX90([x, y, z]) {
+  return [x, 16 - z, y];
+}
+function minmax(a, b) {
+  return [
+    [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2])],
+    [Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.max(a[2], b[2])]
+  ];
+}
+function axisUnderY90(axis, angle) {
+  if (axis === "x")
+    return { axis: "z", angle };
+  if (axis === "z")
+    return { axis: "x", angle: -angle };
+  return { axis, angle };
+}
+function axisUnderX90(axis, angle) {
+  if (axis === "y")
+    return { axis: "z", angle };
+  if (axis === "z")
+    return { axis: "y", angle: -angle };
+  return { axis, angle };
+}
+function rotateFacesX90(faces) {
+  const r = {};
+  if (faces.north !== undefined)
+    r.up = faces.north;
+  if (faces.up !== undefined)
+    r.south = faces.up;
+  if (faces.south !== undefined)
+    r.down = faces.south;
+  if (faces.down !== undefined)
+    r.north = faces.down;
+  if (faces.east !== undefined)
+    r.east = faces.east;
+  if (faces.west !== undefined)
+    r.west = faces.west;
+  return r;
+}
+function rotateFacesY90(faces) {
+  const r = {};
+  if (faces.north !== undefined)
+    r.east = faces.north;
+  if (faces.east !== undefined)
+    r.south = faces.east;
+  if (faces.south !== undefined)
+    r.west = faces.south;
+  if (faces.west !== undefined)
+    r.north = faces.west;
+  if (faces.up !== undefined)
+    r.up = faces.up;
+  if (faces.down !== undefined)
+    r.down = faces.down;
+  return r;
+}
+function applyBlockstateRotation(elements, ref, blockName) {
+  const xSteps = Math.round((ref.x ?? 0) / 90) & 3;
+  const ySteps = Math.round((ref.y ?? 0) / 90) & 3;
+  if (!xSteps && !ySteps)
+    return elements;
+  return elements.map((el) => {
+    let from = [...el.from];
+    let to = [...el.to];
+    let rotOrigin = el.rotation ? [...el.rotation.origin] : undefined;
+    let rotAxis = el.rotation?.axis;
+    let rotAngle = el.rotation?.angle;
+    let faces = el.faces;
+    for (let i = 0;i < xSteps; i++) {
+      from = rotX90(from);
+      to = rotX90(to);
+      if (rotOrigin)
+        rotOrigin = rotX90(rotOrigin);
+      if (rotAxis !== undefined && rotAngle !== undefined)
+        ({ axis: rotAxis, angle: rotAngle } = axisUnderX90(rotAxis, rotAngle));
+      faces = rotateFacesX90(faces);
+    }
+    for (let i = 0;i < ySteps; i++) {
+      from = rotY90(from);
+      to = rotY90(to);
+      if (rotOrigin)
+        rotOrigin = rotY90(rotOrigin);
+      if (rotAxis !== undefined && rotAngle !== undefined)
+        ({ axis: rotAxis, angle: rotAngle } = axisUnderY90(rotAxis, rotAngle));
+      faces = rotateFacesY90(faces);
+    }
+    if (xSteps > 0 && blockName && X_ROT_FIX_BLOCKS.has(blockName)) {
+      for (let i = 0;i < 2; i++) {
+        from = rotY90(from);
+        to = rotY90(to);
+        if (rotOrigin)
+          rotOrigin = rotY90(rotOrigin);
+        if (rotAxis !== undefined && rotAngle !== undefined)
+          ({ axis: rotAxis, angle: rotAngle } = axisUnderY90(rotAxis, rotAngle));
+        faces = rotateFacesY90(faces);
+      }
+    }
+    const [nFrom, nTo] = minmax(from, to);
+    return {
+      from: nFrom,
+      to: nTo,
+      rotation: el.rotation && rotOrigin && rotAxis !== undefined && rotAngle !== undefined ? { origin: rotOrigin, axis: rotAxis, angle: rotAngle } : undefined,
+      faces
+    };
+  });
+}
+
+// src/textures.ts
+var textureCache = new Map;
+var tintedTextureSet = new Set;
+function clearTintedTextures() {
+  tintedTextureSet.clear();
+}
+function getUsedTintedTextures() {
+  return tintedTextureSet;
+}
+function texturePath(assetRoot, textureId) {
+  const [ns, path] = parseNamespace(textureId);
+  return `${assetRoot}/${ns}/textures/${path}.png`;
+}
+function getOrCreateTexture(assetRoot, textureId) {
+  const absPath = texturePath(assetRoot, textureId);
+  if (textureCache.has(absPath))
+    return textureCache.get(absPath);
+  const segments = textureId.split("/");
+  const name = segments[segments.length - 1];
+  const tex = new Texture({ name, path: absPath }).fromPath(absPath).add(false);
+  textureCache.set(absPath, tex);
+  return tex;
+}
+function getOrCreateTintedTexture(assetRoot, textureId, hexColor) {
+  const absPath = texturePath(assetRoot, textureId);
+  const cacheKey = `${absPath}|${hexColor}`;
+  if (textureCache.has(cacheKey))
+    return textureCache.get(cacheKey);
+  const original = getOrCreateTexture(assetRoot, textureId);
+  const r = parseInt(hexColor.slice(1, 3), 16) / 255;
+  const g = parseInt(hexColor.slice(3, 5), 16) / 255;
+  const b = parseInt(hexColor.slice(5, 7), 16) / 255;
+  const segments = textureId.split("/");
+  const name = segments[segments.length - 1];
+  const tex = new Texture({ name }).add(false);
+  tintedTextureSet.add(tex);
+  textureCache.set(cacheKey, tex);
+  const img = new Image;
+  img.onload = () => {
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const d = imageData.data;
+      for (let i = 0;i < d.length; i += 4) {
+        d[i] = (d[i] ?? 0) * r;
+        d[i + 1] = (d[i + 1] ?? 0) * g;
+        d[i + 2] = (d[i + 2] ?? 0) * b;
+      }
+      ctx.putImageData(imageData, 0, 0);
+      tex.fromDataURL(canvas.toDataURL("image/png"));
+    } catch (error) {
+      console.warn(`Failed to tint texture ${textureId}`, error);
+    }
+  };
+  img.onerror = () => console.warn(`Failed to load texture for tinting: ${textureId}`);
+  img.src = original.source;
+  return tex;
+}
+
+// src/culling.ts
+var TRANSPARENT_BLOCKS = new Set([
+  "minecraft:glass",
+  "minecraft:glass_pane",
+  "minecraft:tinted_glass",
+  "minecraft:white_stained_glass",
+  "minecraft:white_stained_glass_pane",
+  "minecraft:orange_stained_glass",
+  "minecraft:orange_stained_glass_pane",
+  "minecraft:magenta_stained_glass",
+  "minecraft:magenta_stained_glass_pane",
+  "minecraft:light_blue_stained_glass",
+  "minecraft:light_blue_stained_glass_pane",
+  "minecraft:yellow_stained_glass",
+  "minecraft:yellow_stained_glass_pane",
+  "minecraft:lime_stained_glass",
+  "minecraft:lime_stained_glass_pane",
+  "minecraft:pink_stained_glass",
+  "minecraft:pink_stained_glass_pane",
+  "minecraft:gray_stained_glass",
+  "minecraft:gray_stained_glass_pane",
+  "minecraft:light_gray_stained_glass",
+  "minecraft:light_gray_stained_glass_pane",
+  "minecraft:cyan_stained_glass",
+  "minecraft:cyan_stained_glass_pane",
+  "minecraft:purple_stained_glass",
+  "minecraft:purple_stained_glass_pane",
+  "minecraft:blue_stained_glass",
+  "minecraft:blue_stained_glass_pane",
+  "minecraft:brown_stained_glass",
+  "minecraft:brown_stained_glass_pane",
+  "minecraft:green_stained_glass",
+  "minecraft:green_stained_glass_pane",
+  "minecraft:red_stained_glass",
+  "minecraft:red_stained_glass_pane",
+  "minecraft:black_stained_glass",
+  "minecraft:black_stained_glass_pane",
+  "minecraft:oak_trapdoor",
+  "minecraft:jungle_trapdoor",
+  "minecraft:acacia_trapdoor",
+  "minecraft:mangrove_trapdoor",
+  "minecraft:cherry_trapdoor",
+  "minecraft:bamboo_trapdoor",
+  "minecraft:crimson_trapdoor",
+  "minecraft:warped_trapdoor",
+  "minecraft:iron_trapdoor",
+  "minecraft:copper_trapdoor",
+  "minecraft:exposed_copper_trapdoor",
+  "minecraft:weathered_copper_trapdoor",
+  "minecraft:oxidized_copper_trapdoor",
+  "minecraft:waxed_copper_trapdoor",
+  "minecraft:waxed_exposed_copper_trapdoor",
+  "minecraft:waxed_weathered_copper_trapdoor",
+  "minecraft:waxed_oxidized_copper_trapdoor",
+  "minecraft:oak_leaves",
+  "minecraft:spruce_leaves",
+  "minecraft:birch_leaves",
+  "minecraft:jungle_leaves",
+  "minecraft:acacia_leaves",
+  "minecraft:dark_oak_leaves",
+  "minecraft:mangrove_leaves",
+  "minecraft:mangrove_roots",
+  "minecraft:cherry_leaves",
+  "minecraft:pale_oak_leaves",
+  "minecraft:azalea_leaves",
+  "minecraft:flowering_azalea_leaves"
+]);
+var OPPOSITE = {
+  north: "south",
+  south: "north",
+  east: "west",
+  west: "east",
+  up: "down",
+  down: "up"
+};
+var DIR_OFFSET = {
+  north: [0, 0, -1],
+  south: [0, 0, 1],
+  east: [1, 0, 0],
+  west: [-1, 0, 0],
+  up: [0, 1, 0],
+  down: [0, -1, 0]
+};
+function posKey([x, y, z]) {
+  return `${x},${y},${z}`;
+}
+function facePlanePos(el, dir) {
+  switch (dir) {
+    case "north":
+      return el.from[2];
+    case "south":
+      return el.to[2];
+    case "west":
+      return el.from[0];
+    case "east":
+      return el.to[0];
+    case "down":
+      return el.from[1];
+    case "up":
+      return el.to[1];
+  }
+}
+function faceRect(el, dir) {
+  const [x1, y1, z1] = el.from;
+  const [x2, y2, z2] = el.to;
+  switch (dir) {
+    case "north":
+    case "south":
+      return [x1, y1, x2, y2];
+    case "west":
+    case "east":
+      return [z1, y1, z2, y2];
+    case "down":
+    case "up":
+      return [x1, z1, x2, z2];
+  }
+}
+function isFullyCovered(target, covers) {
+  const [tu1, tv1, tu2, tv2] = target;
+  if (tu1 >= tu2 || tv1 >= tv2)
+    return true;
+  for (const [cu1, cv1, cu2, cv2] of covers) {
+    if (cu1 <= tu1 && cu2 >= tu2 && cv1 <= tv1 && cv2 >= tv2)
+      return true;
+  }
+  const clipped = covers.map(([cu1, cv1, cu2, cv2]) => [
+    Math.max(cu1, tu1),
+    Math.max(cv1, tv1),
+    Math.min(cu2, tu2),
+    Math.min(cv2, tv2)
+  ]).filter(([u1, v1, u2, v2]) => u1 < u2 && v1 < v2);
+  if (!clipped.length)
+    return false;
+  const vs = new Set([tv1, tv2]);
+  for (const [, v1, , v2] of clipped) {
+    vs.add(v1);
+    vs.add(v2);
+  }
+  const rows = [...vs].filter((v) => v >= tv1 && v < tv2).sort((a, b) => a - b);
+  for (const v of rows) {
+    const segs = clipped.filter(([, v1, , v2]) => v1 <= v && v2 > v).map(([u1, , u2]) => [u1, u2]);
+    segs.sort(([a], [b]) => a - b);
+    let covered = tu1;
+    for (const [su, eu] of segs) {
+      if (su > covered)
+        return false;
+      covered = Math.max(covered, eu);
+    }
+    if (covered < tu2)
+      return false;
+  }
+  return true;
+}
+function buildPositionMap(blocks, paletteElements, palette) {
+  const map = new Map;
+  for (const block of blocks) {
+    const els = paletteElements[block.state];
+    const name = palette[block.state]?.name ?? "";
+    if (els?.length)
+      map.set(posKey(block.pos), { elements: els, name });
+  }
+  return map;
+}
+function cullFaces(elements, pos, posMap) {
+  return elements.map((el) => {
+    if (el.rotation && (el.rotation.axis === "x" || el.rotation.axis === "z")) {
+      return el;
+    }
+    const newFaces = { ...el.faces };
+    for (const dir of Object.keys(newFaces)) {
+      const plane = facePlanePos(el, dir);
+      if (plane !== 0 && plane !== 16)
+        continue;
+      const off = DIR_OFFSET[dir];
+      const adjKey = posKey([pos[0] + off[0], pos[1] + off[1], pos[2] + off[2]]);
+      const adj = posMap.get(adjKey);
+      if (!adj)
+        continue;
+      if (TRANSPARENT_BLOCKS.has(adj.name))
+        continue;
+      const opp = OPPOSITE[dir];
+      const adjBoundary = plane === 0 ? 16 : 0;
+      const coverRects = adj.elements.filter((a) => facePlanePos(a, opp) === adjBoundary).map((a) => faceRect(a, opp));
+      if (isFullyCovered(faceRect(el, dir), coverRects)) {
+        delete newFaces[dir];
+      }
+    }
+    return { ...el, faces: newFaces };
+  });
+}
+
+// src/geometry.ts
+async function buildStructure(structureName, data, assetRoot, scale, tintColor) {
+  const modelCache = new Map;
+  clearTintedTextures();
+  Blockbench.setProgress(0);
+  const paletteElements = await resolvePalette(data.palette, assetRoot, modelCache);
+  const posMap = buildPositionMap(data.blocks, paletteElements, data.palette);
+  const total = data.blocks.length;
+  let facesCulled = 0;
+  Undo.initEdit({ outliner: true, elements: [], textures: [] });
+  const rootGroup = new Group({ name: structureName, origin: [0, 0, 0] });
+  rootGroup.addTo().init();
+  for (let bi = 0;bi < total; bi++) {
+    const block = data.blocks[bi];
+    const entry = data.palette[block.state];
+    if (!entry)
+      continue;
+    const rawElements = paletteElements[block.state] ?? [];
+    if (!rawElements.length)
+      continue;
+    const elements = cullFaces(rawElements, block.pos, posMap);
+    facesCulled += countFaces(rawElements) - countFaces(elements);
+    const visibleEls = elements.filter((e) => Object.keys(e.faces).length > 0);
+    if (!visibleEls.length)
+      continue;
+    const blockName = entry.name.includes(":") ? entry.name.split(":")[1] : entry.name;
+    if (visibleEls.length === 1) {
+      makeCube(blockName, block.pos, visibleEls[0], scale, assetRoot, tintColor).addTo(rootGroup).init();
+    } else {
+      const blockGroup = new Group({ name: blockName, origin: [0, 0, 0] });
+      blockGroup.addTo(rootGroup).init();
+      for (const el of visibleEls) {
+        makeCube(undefined, block.pos, el, scale, assetRoot, tintColor).addTo(blockGroup).init();
+      }
+    }
+    if (bi % 100 === 0) {
+      Blockbench.setProgress(0.3 + bi / total * 0.7);
+      Blockbench.showQuickMessage(`Importing… ${bi}/${total} blocks`, 500);
+      await new Promise((r) => setTimeout(r, 0));
+    }
+  }
+  Undo.finishEdit(`Import structure: ${structureName}`);
+  Canvas.updateAll();
+  updateInterface();
+  Blockbench.setProgress(1);
+  Blockbench.showQuickMessage(`Done: ${total} blocks · ${data.size.join("×")} · ${facesCulled} faces culled`, 5000);
+  setTimeout(() => Blockbench.setProgress(0), 1500);
+}
+function countFaces(elements) {
+  return elements.reduce((n, e) => n + Object.keys(e.faces).length, 0);
+}
+function makeCube(name, blockPos, el, scale, assetRoot, tintColor) {
+  const faceOptions = {};
+  for (const dir of Object.keys(el.faces)) {
+    const face = el.faces[dir];
+    try {
+      const useTint = face.tintindex !== undefined && tintColor !== undefined;
+      const tex = useTint ? getOrCreateTintedTexture(assetRoot, face.texture, tintColor) : getOrCreateTexture(assetRoot, face.texture);
+      const opts = { texture: tex, uv: face.uv, enabled: true };
+      if (face.rotation !== undefined)
+        opts.rotation = face.rotation;
+      faceOptions[dir] = opts;
+    } catch {}
+  }
+  const options = {
+    name,
+    from: toModel(blockPos, el.from, scale),
+    to: toModel(blockPos, el.to, scale),
+    autouv: 0,
+    faces: faceOptions
+  };
+  if (el.rotation) {
+    const r = el.rotation;
+    options.origin = toModel(blockPos, r.origin, scale);
+    options.rotation = [
+      r.axis === "x" ? r.angle : 0,
+      r.axis === "y" ? r.angle : 0,
+      r.axis === "z" ? r.angle : 0
+    ];
+  }
+  const cube = new Cube(options);
+  for (const dir of Object.keys(cube.faces)) {
+    if (!faceOptions[dir])
+      cube.faces[dir].texture = null;
+  }
+  return cube;
+}
+async function resolvePalette(palette, assetRoot, modelCache) {
+  const result = [];
+  for (let i = 0;i < palette.length; i++) {
+    result.push(await resolveEntryElements(palette[i], assetRoot, modelCache));
+    Blockbench.setProgress(i / palette.length * 0.3);
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  return result;
+}
+async function resolveEntryElements(entry, assetRoot, modelCache) {
+  let blockstateJson;
+  try {
+    blockstateJson = await readJsonFile(blockstatePath(assetRoot, entry.name));
+  } catch {
+    return [];
+  }
+  let refs;
+  try {
+    refs = resolveBlockstate(blockstateJson, entry.properties);
+  } catch {
+    return [];
+  }
+  const elements = [];
+  for (const ref of refs) {
+    try {
+      const resolved = await resolveModel(assetRoot, ref.model, modelCache);
+      const rotated = applyBlockstateRotation(resolved.elements, ref, entry.name);
+      elements.push(...rotated);
+    } catch {}
+  }
+  return elements;
+}
+function toModel(blockPos, local, scale) {
+  return [
+    (blockPos[0] * 16 + local[0]) / scale,
+    (blockPos[1] * 16 + local[1]) / scale,
+    (blockPos[2] * 16 + local[2]) / scale
+  ];
+}
+
+// src/index.ts
+var STORAGE_ASSET_ROOT = "stm_asset_root";
+var STORAGE_SCALE = "stm_scale";
+var STORAGE_TINT_PRESET = "stm_tint_preset";
+var STORAGE_TINT_COLOR = "stm_tint_color";
+var STORAGE_PACK_ROOT = "stm_pack_root";
+var STORAGE_TINT_PATH = "stm_tint_path";
+var TINT_PRESETS = {
+  plains: "#79C05A",
+  jungle: "#59C93C",
+  swamp: "#6A7039",
+  desert: "#BFB755",
+  snowy: "#80B497"
+};
+function getAssetRoot() {
+  return localStorage.getItem(STORAGE_ASSET_ROOT) ?? "";
+}
+function getScale() {
+  return Number(localStorage.getItem(STORAGE_SCALE) ?? "16");
+}
+function getTintPreset() {
+  return localStorage.getItem(STORAGE_TINT_PRESET) ?? "none";
+}
+function getTintCustomColor() {
+  return localStorage.getItem(STORAGE_TINT_COLOR) ?? "#79C05A";
+}
+function getPackRoot() {
+  return localStorage.getItem(STORAGE_PACK_ROOT) ?? "";
+}
+function getTintPath() {
+  return localStorage.getItem(STORAGE_TINT_PATH) ?? "";
+}
+function getTintColor() {
+  const preset = getTintPreset();
+  if (preset === "none")
+    return;
+  if (preset === "custom")
+    return getTintCustomColor();
+  return TINT_PRESETS[preset];
+}
+function saveTintedTexturesToDisk(textures, packRoot, textureId) {
+  const fs = requireNativeModule("fs");
+  if (!fs) {
+    Blockbench.showMessageBox({
+      title: "File System Access Required",
+      message: "Could not access the file system to save tinted textures."
+    });
+    return;
+  }
+  const path = requireNativeModule("path");
+  const colon = textureId.indexOf(":");
+  const namespace = colon >= 0 ? textureId.slice(0, colon) : "minecraft";
+  const pathPrefix = colon >= 0 ? textureId.slice(colon + 1) : textureId;
+  const targetDir = path.join(packRoot, "assets", namespace, "textures", "block", pathPrefix);
+  fs.mkdirSync(targetDir, { recursive: true });
+  for (const tex of textures) {
+    const filePath = path.join(targetDir, `${tex.name}.png`);
+    const src = tex.source;
+    const base64 = src.slice(src.indexOf(",") + 1);
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0;i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    fs.writeFileSync(filePath, bytes);
+    tex.fromPath(filePath);
+  }
+  Blockbench.showQuickMessage(`Saved ${textures.size} tinted texture${textures.size === 1 ? "" : "s"} to resource pack.`, 4000);
+}
+function showSaveTintedDialog(textures) {
+  new Dialog({
+    id: "stm_save_tinted",
+    title: "Save Tinted Textures",
+    lines: [
+      `<p style="margin:0 0 4px">${textures.size} tinted texture${textures.size === 1 ? " was" : "s were"} generated. Provide a location in your resource pack to save them.</p>`
+    ],
+    form: {
+      pack_root: {
+        label: "Resource Pack Root",
+        description: "Folder containing pack.mcmeta",
+        type: "folder",
+        value: getPackRoot()
+      },
+      texture_id: {
+        label: "Target Texture Path",
+        description: "Namespace and path prefix, e.g. example:ship/test",
+        type: "text",
+        value: getTintPath()
+      }
+    },
+    onConfirm(result) {
+      const packRoot = result["pack_root"];
+      const textureId = result["texture_id"];
+      if (!packRoot || !textureId) {
+        Blockbench.showMessageBox({
+          title: "Missing Input",
+          message: "Both the resource pack root and texture path are required."
+        });
+        return;
+      }
+      localStorage.setItem(STORAGE_PACK_ROOT, packRoot);
+      localStorage.setItem(STORAGE_TINT_PATH, textureId);
+      try {
+        saveTintedTexturesToDisk(textures, packRoot, textureId);
+      } catch (err) {
+        Blockbench.showMessageBox({
+          title: "Save Error",
+          message: String(err)
+        });
+      }
+    }
+  }).show();
+}
+var importAction;
+var settingsAction;
+var settingsDialog;
+BBPlugin.register("structure_to_model", {
+  title: "Structure to Model",
+  author: "Mester",
+  icon: "account_balance",
+  description: "Converts Minecraft Java structures (.nbt) into a model.",
+  version: "1.1.0",
+  has_changelog: true,
+  min_version: "5.0.0",
+  variant: "desktop",
+  tags: ["Minecraft: Java Edition", "Modeling", "Utility"],
+  repository: "https://github.com/MesterMan03/structure-to-model",
+  bug_tracker: "https://github.com/MesterMan03/structure-to-model/issues",
+  creation_date: "2026/05/06",
+  onload,
+  onunload
+});
+function onload() {
+  settingsDialog = new Dialog({
+    id: "stm_settings",
+    title: "Structure to Model Settings",
+    form: {
+      asset_root: {
+        label: "Asset Root",
+        description: "Path to the Minecraft assets folder (must contain blockstates/, models/, textures/)",
+        type: "folder",
+        value: getAssetRoot()
+      },
+      scale: {
+        label: "Scale",
+        description: "Divide world coordinates by this value. Scale 16 = 16 blocks fit in one model unit.",
+        type: "number",
+        value: getScale(),
+        min: 1,
+        step: 1
+      },
+      tint_preset: {
+        label: "Tint Preset",
+        description: "Biome tint color applied to leaves, grass, and other tinted block faces.",
+        type: "select",
+        value: getTintPreset(),
+        options: {
+          none: "None",
+          plains: "Plains (#79C05A)",
+          jungle: "Jungle (#59C93C)",
+          swamp: "Swamp (#6A7039)",
+          desert: "Desert / Savanna (#BFB755)",
+          snowy: "Snowy Tundra (#80B497)",
+          custom: "Custom…"
+        }
+      },
+      tint_color: {
+        label: "Custom Tint Color",
+        description: "Used only when 'Custom…' is selected above.",
+        type: "color",
+        value: getTintCustomColor()
+      }
+    },
+    onConfirm(result) {
+      localStorage.setItem(STORAGE_ASSET_ROOT, result["asset_root"]);
+      localStorage.setItem(STORAGE_SCALE, String(result["scale"]));
+      localStorage.setItem(STORAGE_TINT_PRESET, result["tint_preset"]);
+      localStorage.setItem(STORAGE_TINT_COLOR, result["tint_color"]);
+      Blockbench.showQuickMessage("Settings saved.");
+    }
+  });
+  settingsAction = new Action("stm_settings", {
+    name: "STM: Settings",
+    description: "Configure Structure to Model settings",
+    icon: "settings",
+    click: () => settingsDialog.show()
+  });
+  importAction = new Action("stm_import", {
+    name: "STM: Import Structure",
+    description: "Import a .nbt structure file and convert it to a model",
+    icon: "file_open",
+    click: () => {
+      Filesystem.importFile({
+        type: "Minecraft Structure",
+        extensions: ["nbt"],
+        readtype: "buffer"
+      }, async (files) => {
+        if (!files.length)
+          return;
+        const file = files[0];
+        try {
+          const assetRoot = getAssetRoot();
+          if (!assetRoot) {
+            Blockbench.showMessageBox({
+              title: "Asset Root Not Set",
+              message: "Set the asset root folder in Tools > STM: Settings before importing."
+            });
+            return;
+          }
+          const scale = getScale();
+          const tintColor = getTintColor();
+          const structureName = file.name.replace(/\.nbt$/i, "");
+          const data = await StructureImporter.fromBuffer(file.content);
+          Blockbench.showQuickMessage(`Building ${data.blocks.length} blocks…`);
+          await buildStructure(structureName, data, assetRoot, scale, tintColor);
+          const tintedTextures = getUsedTintedTextures();
+          if (tintedTextures.size > 0) {
+            showSaveTintedDialog(tintedTextures);
+          }
+        } catch (err) {
+          Blockbench.showMessageBox({
+            title: "Structure Import Error",
+            message: String(err)
+          });
+        }
+      });
+    }
+  });
+  MenuBar.addAction(importAction, "tools");
+  MenuBar.addAction(settingsAction, "tools");
+}
+function onunload() {
+  importAction.delete();
+  settingsAction.delete();
+}

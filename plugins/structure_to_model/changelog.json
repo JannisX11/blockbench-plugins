@@ -1,0 +1,15 @@
+{
+  "1.1.0": {
+    "title": "Support for newer Minecraft structures",
+    "date": "2026-11-23",
+    "categories": [
+      {
+        "title": "Fixes",
+        "list": [
+          "Fixed an import error that made Structure to Model look for a block called “undefined” in newer structure files.",
+          "If a structure contains a broken palette entry, the error message now tells you which entry to check."
+        ]
+      }
+    ]
+  }
+}
