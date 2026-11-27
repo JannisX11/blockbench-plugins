@@ -1812,5 +1812,15 @@
 		"tags": [
 			"Vintage Story"
 		]
+	},
+		"gestures": {
+		"title": "Gestures",
+		"author": "sad",
+		"icon": "gestures.png",
+		"description": "Animation workspace and JSON import/export for the Fabric Gestures mod.",
+		"tags": ["Minecraft: Java Edition", "Animation"],
+		"version": "1.0.0",
+		"min_version": "4.9.0",
+		"variant": "desktop"
 	}
 }
