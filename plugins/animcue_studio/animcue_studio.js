@@ -939,13 +939,18 @@ const SceneCameraRig = (() => {
 const Participants = (() => {
     const slotKey = 'animcue_participant';
     const boneKey = 'animcue_bone_name';
+    const effectRoleKey = 'animcue_role';
     const resourceId = /^[a-z0-9_.-]+:[a-z0-9/._-]+$/;
 
     function register() {
-        return [
+        const props = [
             new Property(Group, 'object', slotKey),
             new Property(Group, 'string', boneKey)
         ];
+        if (typeof KeyframeDataPoint !== 'undefined') {
+            props.push(new Property(KeyframeDataPoint, 'string', effectRoleKey));
+        }
+        return props;
     }
 
     function roots() {
@@ -1722,6 +1727,21 @@ const InteractionCodec = (() => {
             }
             animation.bones ??= {};
 
+            const partitioned = partitionClipEffects(clip, roles);
+            if (partitioned.hasParticipantEffects) {
+                if (Object.keys(partitioned.primary.sound_effects).length) animation.sound_effects = partitioned.primary.sound_effects;
+                else delete animation.sound_effects;
+                if (Object.keys(partitioned.primary.particle_effects).length) animation.particle_effects = partitioned.primary.particle_effects;
+                else delete animation.particle_effects;
+            } else {
+                if (!animation.sound_effects && Object.keys(partitioned.primary.sound_effects).length) {
+                    animation.sound_effects = partitioned.primary.sound_effects;
+                }
+                if (!animation.particle_effects && Object.keys(partitioned.primary.particle_effects).length) {
+                    animation.particle_effects = partitioned.primary.particle_effects;
+                }
+            }
+
             const activeParticipants = [];
             let maxTime = maxPrimaryTime(animation);
             for (const entry of rigs) {
@@ -1768,8 +1788,20 @@ const InteractionCodec = (() => {
                     outBones[ROOT] = {position: {'0': [0, 0, 0]}};
                 }
 
-                if (Object.keys(outBones).length) {
-                    activeParticipants.push({...entry.slot, bones: outBones});
+                const roleFx = partitioned.byRole.get(entry.slot.role);
+                const roleSounds = roleFx?.sound_effects;
+                const roleParticles = roleFx?.particle_effects;
+                const hasRoleSounds = Boolean(roleSounds && Object.keys(roleSounds).length);
+                const hasRoleParticles = Boolean(roleParticles && Object.keys(roleParticles).length);
+                if (hasRoleSounds) maxTime = Math.max(maxTime, maxEffectTime(roleSounds));
+                if (hasRoleParticles) maxTime = Math.max(maxTime, maxEffectTime(roleParticles));
+
+                if (Object.keys(outBones).length || hasRoleSounds || hasRoleParticles) {
+                    const outParticipant = {...entry.slot};
+                    if (Object.keys(outBones).length) outParticipant.bones = outBones;
+                    if (hasRoleSounds) outParticipant.sound_effects = roleSounds;
+                    if (hasRoleParticles) outParticipant.particle_effects = roleParticles;
+                    activeParticipants.push(outParticipant);
                 }
             }
 
@@ -1894,16 +1926,85 @@ const InteractionCodec = (() => {
         throw new Error(Locale.t('err_numeric_required'));
     }
 
+    function maxEffectTime(section) {
+        let max = 0;
+        for (const t of Object.keys(section ?? {})) {
+            const n = Number(t);
+            if (Number.isFinite(n) && n >= 0) max = Math.max(max, n);
+        }
+        return max;
+    }
+
     function maxPrimaryTime(animation) {
         let max = 0;
         for (const bone of Object.values(animation.bones ?? {})) {
             max = Math.max(max, maxTrackTime(bone));
         }
-        for (const t of Object.keys(animation.timeline ?? {})) {
-            const n = Number(t);
-            if (Number.isFinite(n) && n >= 0) max = Math.max(max, n);
+        for (const section of [animation.timeline, animation.sound_effects, animation.particle_effects]) {
+            max = Math.max(max, maxEffectTime(section));
         }
         return max;
+    }
+
+    function partitionClipEffects(clip, roleSet) {
+        const effects = clip?.animators?.effects;
+        const primary = {sound_effects: {}, particle_effects: {}};
+        const byRole = new Map();
+        const buckets = {
+            primary: {sound: new Map(), particle: new Map()},
+            roles: new Map()
+        };
+        const getRoleBucket = role => {
+            if (!buckets.roles.has(role)) buckets.roles.set(role, {sound: new Map(), particle: new Map()});
+            return buckets.roles.get(role);
+        };
+        const list = effects
+            ? (Array.isArray(effects.keyframes) ? effects.keyframes : [...(effects.sound ?? []), ...(effects.particle ?? [])])
+            : [];
+        let hasParticipantEffects = false;
+        const sorted = list
+            .filter(kf => kf && (kf.channel === 'sound' || kf.channel === 'particle'))
+            .slice()
+            .sort((a, b) => (Number(a.time) || 0) - (Number(b.time) || 0));
+
+        for (const kf of sorted) {
+            const timeKey = formatSecondsKey(kf.time);
+            const rawPoints = Array.isArray(kf.data_points) && kf.data_points.length ? kf.data_points : [kf];
+            for (const dp of rawPoints) {
+                const effect = String(dp?.effect ?? kf?.effect ?? '').trim();
+                if (!effect) continue;
+                const locator = String(dp?.locator ?? kf?.locator ?? '').trim();
+                const script = kf.channel === 'particle'
+                    ? String(dp?.script ?? dp?.pre_effect_script ?? kf?.script ?? kf?.pre_effect_script ?? '').trim()
+                    : '';
+                const entry = {effect};
+                if (locator) entry.locator = locator;
+                if (script) entry.pre_effect_script = script;
+                const role = String(dp?.animcue_role ?? kf?.animcue_role ?? '').trim();
+                const target = role && roleSet.has(role) ? getRoleBucket(role) : buckets.primary;
+                if (target !== buckets.primary) hasParticipantEffects = true;
+                const channelMap = target[kf.channel];
+                if (!channelMap.has(timeKey)) channelMap.set(timeKey, []);
+                channelMap.get(timeKey).push(entry);
+            }
+        }
+
+        const finalize = srcMap => {
+            const out = {};
+            for (const [t, items] of srcMap.entries()) {
+                out[t] = items.length === 1 ? items[0] : items;
+            }
+            return out;
+        };
+        primary.sound_effects = finalize(buckets.primary.sound);
+        primary.particle_effects = finalize(buckets.primary.particle);
+        for (const [role, roleBuckets] of buckets.roles.entries()) {
+            byRole.set(role, {
+                sound_effects: finalize(roleBuckets.sound),
+                particle_effects: finalize(roleBuckets.particle)
+            });
+        }
+        return {primary, byRole, hasParticipantEffects};
     }
 
     function maxTrackTime(track) {
@@ -2121,23 +2222,102 @@ const InteractionCodec = (() => {
         return map;
     }
 
-    function insertEventMarker(clip, time, name) {
-        const clean = String(name || '').trim();
-        if (!clean) throw new Error(Locale.t('err_event_empty'));
+    function addEffectKeyframe(clip, time, channel, points) {
         const seconds = Math.max(0, Number(time) || 0);
+        const dataPoints = (Array.isArray(points) ? points : [points]).filter(Boolean);
+        if (!dataPoints.length) return null;
         if (!clip.animators.effects && typeof EffectAnimator !== 'undefined') {
             clip.animators.effects = new EffectAnimator(clip);
         }
         const effects = clip.animators.effects;
         if (!effects) return null;
         effects.addToTimeline?.();
-        const kf = effects.addKeyframe({
-            time: seconds,
-            channel: 'timeline',
-            data_points: [{script: clean}]
-        });
+        const existing = (effects.keyframes ?? []).find(
+            kf => kf.channel === channel && Math.abs((Number(kf.time) || 0) - seconds) < 1e-6
+        );
+        let kf;
+        if (existing) {
+            existing.data_points ??= [];
+            for (const point of dataPoints) {
+                if (typeof KeyframeDataPoint !== 'undefined') {
+                    const dp = new KeyframeDataPoint(existing);
+                    if (typeof dp.extend === 'function') dp.extend(point);
+                    else Object.assign(dp, point);
+                    existing.data_points.push(dp);
+                } else {
+                    existing.data_points.push(point);
+                }
+            }
+            kf = existing;
+        } else {
+            kf = effects.addKeyframe({
+                time: seconds,
+                channel,
+                data_points: dataPoints
+            });
+        }
         if (seconds > clip.length) clip.length = seconds;
         return kf;
+    }
+
+    function insertEventMarker(clip, time, name) {
+        const clean = String(name || '').trim();
+        if (!clean) throw new Error(Locale.t('err_event_empty'));
+        return addEffectKeyframe(clip, time, 'timeline', {script: clean});
+    }
+
+    function soundPoint(effect, locator = '', role = '') {
+        const clean = String(effect || '').trim();
+        if (!clean) return null;
+        const point = {effect: clean};
+        if (locator) point.locator = String(locator);
+        if (role) point.animcue_role = String(role);
+        return point;
+    }
+
+    function particlePoint(effect, locator = '', script = '', role = '') {
+        const clean = String(effect || '').trim();
+        if (!clean) return null;
+        const point = {effect: clean};
+        if (locator) point.locator = String(locator);
+        if (script) point.script = String(script);
+        if (role) point.animcue_role = String(role);
+        return point;
+    }
+
+    function collectEffectPoints(payload, toPoint) {
+        const points = [];
+        for (const item of Array.isArray(payload) ? payload : [payload]) {
+            const point = toPoint(item);
+            if (point) points.push(point);
+        }
+        return points;
+    }
+
+    function importEffectTracks(clip, source, role = '') {
+        if (!source || typeof source !== 'object') return;
+        for (const [timeKey, payload] of Object.entries(source.sound_effects ?? {})) {
+            const sec = Number(timeKey);
+            if (!Number.isFinite(sec) || sec < 0) continue;
+            const points = collectEffectPoints(payload, item => {
+                if (typeof item === 'string') return soundPoint(item, '', role);
+                if (item && typeof item === 'object' && item.effect) return soundPoint(item.effect, item.locator || '', role);
+                return null;
+            });
+            if (points.length) addEffectKeyframe(clip, sec, 'sound', points);
+        }
+        for (const [timeKey, payload] of Object.entries(source.particle_effects ?? {})) {
+            const sec = Number(timeKey);
+            if (!Number.isFinite(sec) || sec < 0) continue;
+            const points = collectEffectPoints(payload, item => {
+                if (typeof item === 'string') return particlePoint(item, '', '', role);
+                if (item && typeof item === 'object' && item.effect) {
+                    return particlePoint(item.effect, item.locator || '', item.pre_effect_script || item.script || '', role);
+                }
+                return null;
+            });
+            if (points.length) addEffectKeyframe(clip, sec, 'particle', points);
+        }
     }
 
     function importSceneDocument(data, options = {}) {
@@ -2174,7 +2354,7 @@ const InteractionCodec = (() => {
             }
             applyBoneTracksToMap(clip, primaryBones, primaryLookup, {fromBedrock: !primaryFromPal});
 
-            // 2. Timeline event markers
+            // 2. Timeline event markers, sound effects, and particle effects
             for (const [timeKey, payload] of Object.entries(rawAnim.timeline ?? {})) {
                 const sec = Number(timeKey);
                 if (!Number.isFinite(sec) || sec < 0) continue;
@@ -2183,6 +2363,7 @@ const InteractionCodec = (() => {
                     if (typeof line === 'string' && line.trim()) insertEventMarker(clip, sec, line.trim());
                 }
             }
+            importEffectTracks(clip, rawAnim, '');
 
             // 3. AnimCue interaction participants & camera
             const ext = interactions[animName];
@@ -2221,6 +2402,7 @@ const InteractionCodec = (() => {
                         name => boneMap.get(name) || boneMap.get(String(name).toLowerCase()) || null,
                         {fromBedrock: !childFromPal}
                     );
+                    importEffectTracks(clip, participant, participant.role);
                     matchedParticipantTracks += 1;
                 }
 
