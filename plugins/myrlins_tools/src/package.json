@@ -1,0 +1,12 @@
+{
+	"name": "myrlins_tools",
+	"version": "3.4.3",
+	"private": true,
+	"description": "Source of the Myrlin's Tools Blockbench plugin (store edition). The built file is ../myrlins_tools.js.",
+	"scripts": {
+		"build": "esbuild plugin.ts --bundle --outfile=../myrlins_tools.js --format=iife --global-name=MyrlinsTools --target=es2020 --define:MYRLIN_STORE_EDITION=true --minify-syntax"
+	},
+	"devDependencies": {
+		"esbuild": "0.20.2"
+	}
+}
