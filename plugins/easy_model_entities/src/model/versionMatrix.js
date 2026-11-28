@@ -17,7 +17,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const DEFAULT_VERSION_ID = '1.20.1';
+const DEFAULT_VERSION_ID = '1.21.1';
+const MIN_MOD_VERSION = '2.5.0';
 
 const VERSIONS = [
   {
@@ -51,8 +52,15 @@ const VERSIONS = [
   {
     id: '26.2',
     label: 'Minecraft 26.2',
-    data: {packFormat: 101, minFormat: [101, 1], maxFormat: [101, 1]},
-    resource: {packFormat: 84, minFormat: [84, 0], maxFormat: [84, 0]},
+    data: {packFormat: 107, minFormat: [107, 1], maxFormat: [107, 1]},
+    resource: {packFormat: 88, minFormat: [88, 0], maxFormat: [88, 0]},
+    enabled: true
+  },
+  {
+    id: '26.3',
+    label: 'Minecraft 26.3',
+    data: {packFormat: 121, minFormat: [121, 0], maxFormat: [121, 0]},
+    resource: {packFormat: 97, minFormat: [97, 1], maxFormat: [97, 1]},
     enabled: true
   }
 ];
@@ -81,6 +89,7 @@ function getPackFormats(id) {
 }
 
 module.exports = {
+  MIN_MOD_VERSION,
   getVersions,
   getDefaultVersionId,
   getPackFormats

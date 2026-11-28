@@ -21,7 +21,9 @@ const {
   getDefaults,
   applyTemplate,
   DEFAULT_PRESET,
-  deepMerge
+  deepMerge,
+  compactModelSettings,
+  expandModelSettings
 } = require('../model/templates');
 const {
   presetDefaults,
@@ -48,7 +50,7 @@ describe('templates', () => {
     const d = getDefaults();
     expect(d.namespace).toBe('example_org');
     expect(d.profileId).toBe('entity');
-    expect(d.targetVersion).toBe('1.20.1');
+    expect(d.targetVersion).toBe('1.21.1');
     expect(d.presetType).toBe(DEFAULT_PRESET);
   });
 
@@ -114,4 +116,60 @@ describe('presetDefaults', () => {
         expect(merged.rendering.scale).toBe(2);
         expect(merged.rendering.shadowRadius).toBe(0.5);
       });
+});
+
+describe('stored model settings', () => {
+  function exportedSettings() {
+    return {
+      ...applyTemplate('quadruped_wandering'),
+      namespace: 'example',
+      profileId: 'lizard',
+      customize: true,
+      includeExternalTextures: true,
+      exportType: 'resource_pack',
+      lastExportedVersion: 'abc12345'
+    };
+  }
+
+  test('keeps identity and changed values only', () => {
+    const settings = exportedSettings();
+    settings.dimensions.width = 2;
+    settings.animation.variantWeights = {idle_2: 3};
+    expect(compactModelSettings(settings)).toEqual({
+      modelType: 'entity',
+      presetType: 'quadruped_wandering',
+      namespace: 'example',
+      profileId: 'lizard',
+      targetVersion: getDefaults().targetVersion,
+      customize: true,
+      dimensions: {width: 2},
+      animation: {variantWeights: {idle_2: 3}},
+      lastExportedVersion: 'abc12345'
+    });
+  });
+
+  test('expanding restores the exported settings', () => {
+    const settings = exportedSettings();
+    settings.rendering.visibleBoundsOffset = [0, 1, 0];
+    settings.rendering.opacity = 0.5;
+    settings.animation.variantMode = 'sequential';
+    settings.animation.variantWeights = {idle_2: 3, 'walk 2': 0.5};
+    settings.shoulder = {offset: [1, -2, 0.5], scale: 0.75};
+    settings.behavior = {
+      mode: 'idle_only', lookAtPlayers: true,
+      randomStroll: false
+    };
+    const restored = expandModelSettings(compactModelSettings(settings));
+    delete settings.exportType;
+    expect(restored).toEqual(settings);
+  });
+
+  test('block entities do not store the entity-only shoulder', () => {
+    const settings = {
+      ...applyTemplate('static', 'block_entity'),
+      namespace: 'example',
+      profileId: 'shrine'
+    };
+    expect(compactModelSettings(settings).shoulder).toBeUndefined();
+  });
 });

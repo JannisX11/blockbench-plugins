@@ -20,104 +20,113 @@
 const {getDefaults, applyTemplate, deepMerge} = require('../model/templates');
 const {
   MODEL_TYPE_ENTITY,
-  MODEL_TYPE_BLOCK_ENTITY
+  MODEL_TYPE_BLOCK_ENTITY,
+  behaviorForMode,
+  isCustomEntity
 } = require('../model/presetTypes');
 const {
   EXPORT_TYPE_PACKS,
-  EXPORT_TYPE_MODEL_ONLY,
-  EXPORT_TYPE_MOD_PROJECT,
-  isZipExport
+  EXPORT_TYPE_MODEL_ONLY
 } = require('../model/exportTypes');
 const {ModelDimensions} = require('../model/ModelDimensions');
 const {VisibleBounds} = require('../model/VisibleBounds');
 
-function settingsToForm(settings) {
-  const offset = settings.rendering.visibleBoundsOffset || [0, 0, 0];
+const keepValue = (value) => value;
 
-  return {
-    namespace: settings.namespace,
-    profileId: settings.profileId,
-    targetVersion: settings.targetVersion,
-    hostEntityType: settings.host.entityType,
-    movementType: settings.host.movementType,
-    bodyType: settings.host.bodyType,
-    width: settings.dimensions.width,
-    height: settings.dimensions.height,
-    eyeHeight: settings.dimensions.eyeHeight,
-    speed: settings.movement.speed,
-    stepHeight: settings.movement.stepHeight,
-    gravity: settings.movement.gravity,
-    behaviorMode: settings.behavior.mode,
-    maxHealth: settings.attributes.maxHealth,
-    movementSpeed: settings.attributes.movementSpeed,
-    followRange: settings.attributes.followRange,
-    scale: settings.rendering.scale,
-    shadowRadius: settings.rendering.shadowRadius,
-    visibleBoundsWidth: settings.rendering.visibleBoundsWidth ?? 0,
-    visibleBoundsHeight: settings.rendering.visibleBoundsHeight ?? 0,
-    visibleBoundsOffsetX: offset[0],
-    visibleBoundsOffsetY: offset[1],
-    visibleBoundsOffsetZ: offset[2],
-    animationMode: settings.animation.mode,
-    swingSpeed: settings.animation.swingSpeed,
-    walkSpeedMultiplier: settings.animation.walkSpeedMultiplier,
-    idleStrength: settings.animation.idleStrength ?? 1,
-    gait: settings.animation.gait || 'natural'
-  };
+const FORM_FIELDS = [
+  ['hostEntityType', 'host.entityType', keepValue],
+  ['movementType', 'host.movementType', keepValue],
+  ['bodyType', 'host.bodyType', keepValue],
+  ['width', 'dimensions.width', Number],
+  ['height', 'dimensions.height', Number],
+  ['eyeHeight', 'dimensions.eyeHeight', Number],
+  ['speed', 'movement.speed', Number],
+  ['stepHeight', 'movement.stepHeight', Number],
+  ['gravity', 'movement.gravity', Boolean],
+  ['behaviorMode', 'behavior.mode', keepValue],
+  ['maxHealth', 'attributes.maxHealth', Number],
+  ['movementSpeed', 'attributes.movementSpeed', Number],
+  ['followRange', 'attributes.followRange', Number],
+  ['scale', 'rendering.scale', Number],
+  ['shadowRadius', 'rendering.shadowRadius', Number],
+  ['visibleBoundsWidth', 'rendering.visibleBoundsWidth', Number],
+  ['visibleBoundsHeight', 'rendering.visibleBoundsHeight', Number],
+  ['opacity', 'rendering.opacity', Number],
+  ['animationMode', 'animation.mode', keepValue],
+  ['swingSpeed', 'animation.swingSpeed', Number],
+  ['walkSpeedMultiplier', 'animation.walkSpeedMultiplier', Number],
+  ['idleStrength', 'animation.idleStrength', Number],
+  ['gait', 'animation.gait', keepValue],
+  ['variantMode', 'animation.variantMode', keepValue],
+  ['shoulderScale', 'shoulder.scale', Number]
+];
+
+const VECTOR_FIELDS = [
+  ['rendering.visibleBoundsOffset',
+    ['visibleBoundsOffsetX', 'visibleBoundsOffsetY', 'visibleBoundsOffsetZ']],
+  ['shoulder.offset',
+    ['shoulderOffsetX', 'shoulderOffsetY', 'shoulderOffsetZ']]
+];
+
+function variantWeightKey(index) {
+  return `variantWeight${index}`;
 }
 
-function formToSettings(form, base) {
-  return {
-    schemaVersion: base.schemaVersion,
+function settingsToForm(settings, variantClips) {
+  const form = {
+    namespace: settings.namespace,
+    profileId: settings.profileId,
+    targetVersion: settings.targetVersion
+  };
+  for (const [key, path] of FORM_FIELDS) {
+    const [section, field] = path.split('.');
+    form[key] = settings[section][field];
+  }
+  for (const [path, keys] of VECTOR_FIELDS) {
+    const [section, field] = path.split('.');
+    keys.forEach((key, axis) => {
+      form[key] = settings[section][field][axis];
+    });
+  }
+  (variantClips || []).forEach((clipName, index) => {
+    form[variantWeightKey(index)] =
+        settings.animation.variantWeights[clipName] ?? 1;
+  });
+
+  return form;
+}
+
+function formToSettings(form, base, variantClips) {
+  const settings = {
     modelType: base.modelType,
     presetType: base.presetType,
     namespace: String(form.namespace || '').trim(),
     profileId: String(form.profileId || '').trim(),
     targetVersion: base.targetVersion,
-    host: {
-      entityType: form.hostEntityType,
-      movementType: form.movementType,
-      bodyType: form.bodyType
-    },
-    dimensions: {
-      width: Number(form.width),
-      height: Number(form.height),
-      eyeHeight: Number(form.eyeHeight)
-    },
-    movement: {
-      speed: Number(form.speed),
-      stepHeight: Number(form.stepHeight),
-      gravity: !!form.gravity
-    },
-    behavior: {
-      mode: form.behaviorMode,
-      lookAtPlayers: base.behavior ? base.behavior.lookAtPlayers : true,
-      randomStroll: base.behavior ? base.behavior.randomStroll : false
-    },
-    attributes: {
-      maxHealth: Number(form.maxHealth),
-      movementSpeed: Number(form.movementSpeed),
-      followRange: Number(form.followRange)
-    },
-    rendering: {
-      scale: Number(form.scale),
-      shadowRadius: Number(form.shadowRadius),
-      visibleBoundsWidth: Number(form.visibleBoundsWidth),
-      visibleBoundsHeight: Number(form.visibleBoundsHeight),
-      visibleBoundsOffset: [
-        Number(form.visibleBoundsOffsetX),
-        Number(form.visibleBoundsOffsetY),
-        Number(form.visibleBoundsOffsetZ)
-      ]
-    },
-    animation: {
-      mode: form.animationMode,
-      swingSpeed: Number(form.swingSpeed),
-      walkSpeedMultiplier: Number(form.walkSpeedMultiplier),
-      idleStrength: Number(form.idleStrength),
-      gait: form.gait
-    }
+    host: {},
+    dimensions: {},
+    movement: {},
+    behavior: {},
+    attributes: {},
+    rendering: {},
+    animation: {},
+    shoulder: {}
   };
+  for (const [key, path, convert] of FORM_FIELDS) {
+    const [section, field] = path.split('.');
+    settings[section][field] = convert(form[key]);
+  }
+  for (const [path, keys] of VECTOR_FIELDS) {
+    const [section, field] = path.split('.');
+    settings[section][field] = keys.map((key) => Number(form[key]));
+  }
+  settings.behavior = behaviorForMode(settings.behavior.mode,
+      settings.host.movementType);
+  settings.animation.variantWeights = Object.fromEntries(
+      (variantClips || []).map((clipName, index) =>
+          [clipName, Number(form[variantWeightKey(index)])]));
+
+  return settings;
 }
 
 function activeModelType(form) {
@@ -130,12 +139,23 @@ function activePreset(form) {
       ? (form.blockPreset || 'static') : (form.preset || 'custom');
 }
 
-function presetFormValues(presetType, modelType, modelDimensions,
+function presetKey(form) {
+  return `${activeModelType(form)}|${activePreset(form)}`;
+}
+
+function presetSettings(presetType, modelType, modelDimensions,
     visibleBounds) {
   const settings = ModelDimensions.applyModelDimensions(
       applyTemplate(presetType, modelType), modelDimensions);
   VisibleBounds.applyVisibleBounds(settings, visibleBounds);
-  const form = settingsToForm(settings);
+
+  return settings;
+}
+
+function presetFormValues(presetType, modelType, modelDimensions,
+    visibleBounds) {
+  const form = settingsToForm(presetSettings(presetType, modelType,
+      modelDimensions, visibleBounds));
   delete form.namespace;
   delete form.profileId;
   delete form.targetVersion;
@@ -143,21 +163,15 @@ function presetFormValues(presetType, modelType, modelDimensions,
   return form;
 }
 
-function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
-  const exportType = form.exportType || EXPORT_TYPE_PACKS;
+function resolveExportSettings(form, base, modelDimensions, visibleBounds,
+    variantClips) {
   const modelType = activeModelType(form);
   const preset = activePreset(form);
 
-  let settings;
-  if (modelType !== MODEL_TYPE_BLOCK_ENTITY && preset === 'custom') {
-    settings = deepMerge(getDefaults(), base);
-  } else {
-    settings = ModelDimensions.applyModelDimensions(
-        applyTemplate(preset, modelType), modelDimensions);
-    VisibleBounds.applyVisibleBounds(settings, visibleBounds);
-  }
+  let settings = isCustomEntity(modelType, preset)
+      ? deepMerge(getDefaults(), base)
+      : presetSettings(preset, modelType, modelDimensions, visibleBounds);
 
-  settings.schemaVersion = base.schemaVersion || settings.schemaVersion;
   settings.modelType = modelType;
   settings.presetType = preset;
   settings.namespace = String(form.namespace || '').trim();
@@ -165,24 +179,24 @@ function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
   settings.targetVersion = form.targetVersion;
 
   if (form.customize) {
-    settings = formToSettings(form, settings);
+    settings = formToSettings(form, settings, variantClips);
   }
   settings.customize = !!form.customize;
   settings.includeExternalTextures = form.includeExternalTextures !== false;
   settings.lastExportedVersion = base.lastExportedVersion;
-  settings.exportType = exportType;
-  settings.exportTarget = isZipExport(exportType)
-      ? EXPORT_TYPE_PACKS : EXPORT_TYPE_MOD_PROJECT;
-  settings.modelOnly = exportType === EXPORT_TYPE_MODEL_ONLY;
+  settings.lastExportedTargetVersion = base.lastExportedTargetVersion;
+  settings.exportType = form.exportType || EXPORT_TYPE_PACKS;
 
   return settings;
 }
 
 module.exports = {
+  variantWeightKey,
   settingsToForm,
   formToSettings,
   activeModelType,
   activePreset,
+  presetKey,
   presetFormValues,
   resolveExportSettings
 };

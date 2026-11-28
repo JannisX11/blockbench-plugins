@@ -1,27 +1,27 @@
 # Easy Model Entities
 
-> **Note:** This is an early release to gather feedback. Some settings, file formats and the export
-> output may still change before the final version. Please report problems and ideas on the
+> **Note:** This is an early release. Settings, file formats and the export output can still
+> change. Please report problems and ideas on the
 > [issue tracker](https://github.com/MarkusBordihn/BOs-Easy-Model-Entities/issues).
 
-Turn your Blockbench model into a Minecraft entity you can spawn in game — without writing a mod.
-The plugin exports a Data Pack and a Resource Pack for the **Easy Model Entities** mod on
-**Minecraft: Java Edition**.
+Turn your Blockbench model into a Minecraft entity you can spawn in game. You do not need to write
+a mod for it. The plugin exports a Data Pack and a Resource Pack for the **Easy Model Entities** mod
+on **Minecraft: Java Edition**.
 
-This plugin only generates the pack files. The **Easy Model Entities mod must be installed** in
-Minecraft for them to work, and on the server as well in multiplayer. Without the mod the generated
-files do nothing.
+The plugin only creates the pack files. To use them, the **Easy Model Entities mod must be
+installed**, version 2.5.0 or newer. In multiplayer, the server needs the mod too.
 
 - [CurseForge](https://www.curseforge.com/minecraft/mc-mods/easy-model-entities)
 - [Modrinth](https://modrinth.com/mod/easy-model-entities)
 
-## What you get, and what you do not
+## What you get
 
-Your model becomes a spawnable entity or a block entity, with a spawn item in the creative
-inventory. Size, movement and behavior come from a **fixed set of presets** built into the mod
-(wandering, swimming, flying, standing still and so on) — you pick one, you do not script your own.
+Your model becomes an entity or a block entity. You find its spawn item in the creative inventory.
 
-Animations are played from your Blockbench clips. These names are played automatically:
+Size, movement and behavior come from **presets** built into the mod, for example wandering,
+swimming, flying or standing still. You pick one preset. You cannot write your own AI.
+
+Animations come from your Blockbench clips. These names play on their own:
 
 | Clip     | When it plays        |
 |----------|----------------------|
@@ -30,54 +30,70 @@ Animations are played from your Blockbench clips. These names are played automat
 | `swim`   | moving in water      |
 | `fly`    | flying               |
 | `attack` | attacking            |
-| `sit`    | sitting              |
+| `sit`    | sitting or riding    |
+| `hurt`   | taking damage        |
+| `death`  | dying                |
 
-`hurt` and `death` clips are loaded too, but the mod does not trigger them on its own. Clips with
-any other name are kept as custom clips and are played by name via the
-`/easy_model_entities animation` command or by another mod. A model without a matching clip simply
-renders without animation.
+- `shoulder` plays while the model sits on a player's shoulder. Without it, `sit` or `idle` is used.
+- Numbered clips like `idle_2` or `walk 3` are variants. The mod picks one of them each time.
+- Clips with other names only play by command (`/easy_model_entities animation`) or from another
+  mod.
+- A model without any of these clips is shown without animation.
 
 ## How to use
 
-1. Open or create your model in Blockbench using the **Easy Model Entity** format (File > New > Easy
-   Model Entity). The built-in **Modded Entity** format also works. Block and item formats are not
-   supported.
-2. Run **File > Export > Export Easy Model Entity**.
+1. Open or create your model in Blockbench with the **Easy Model Entity** format (File > New > Easy
+   Model Entity). The **Modded Entity** format works too. Block and item formats
+   do not.
+2. Click **File > Export > Export Easy Model Entity**.
 3. Choose the **Export Type**:
 
-- **Complete: Data Pack + Resource Pack (ZIP)** — one archive with both packs and a README that
-  explains how to install them. Use this the first time and for sharing.
-- **Update: Resource Pack only (ZIP)** — after changing the model, texture or animations.
-- **Update: Data Pack only (ZIP)** — after changing entity data such as size or movement.
-- **Standalone: write into mod project** — writes all files into a selected `src/main/resources`
-  directory.
-- **Model only: mod integration (no data pack)** — writes only the render profile, model and
-  texture. Use this when your mod ships its own entity classes and needs the visual side only.
+- **Complete: Data Pack + Resource Pack (ZIP)**: both packs and a README in one file. Use this
+  the first time and when you share your model.
+- **Update: Resource Pack only (ZIP)**: after you changed the model, texture or animations.
+- **Update: Data Pack only (ZIP)**: after you changed entity data like size or movement.
+- **Standalone: write into mod project**: writes all files into a `src/main/resources` folder.
+- **Model only: mod integration (no data pack)**: writes only the model, texture and render
+  profile. For mods that bring their own entities.
 
-4. Choose the **Type** (not shown for *Model only*, which is always an entity):
+4. Choose the **Type** (not shown for *Model only*):
 
-- **Entity** — a living entity controlled by the mod's built-in AI presets.
-- **Block Entity** — a static block that can play animations.
+- **Entity**: a mob that moves on its own.
+- **Block Entity**: a block that can play animations.
 
-5. Pick a **Preset** that matches your model. The plugin auto-detects a fitting one from your bone
-   names, so most models need nothing else. Tick **Customize settings** (requires the *Show advanced
-   customization* Blockbench setting) only to fine-tune dimensions, movement, attributes, rendering
-   or animation.
-6. Set the **Namespace (mod id)** and **Profile ID**, and choose the Minecraft target version.
-7. If the project uses textures from another namespace, **Include external textures** decides
-   whether they are copied into the resource pack (default) or only referenced. Referenced textures
-   need the mod or pack that provides them; vanilla `minecraft:` textures are never copied.
+5. Pick a **Preset**. The plugin suggests one based on your group names, so most models need
+   nothing else.
+6. Set the **Namespace (mod id)**, the **Profile ID** and the Minecraft version.
+7. **Include external textures**: if your model uses textures from another mod, they are copied into
+   the pack. Turn it off to only point to them. Then the other mod has to be installed. Vanilla
+   `minecraft:` textures are never copied.
 
-The two update exports save you from re-installing both packs for a small change. They keep the
-pairing of your last full export, so the updated pack still matches the one already installed. If
-you changed the model **and** the entity data, export the complete bundle instead.
+Changed only a small thing? Use one of the update exports. The new pack still fits the one you
+already installed. If you changed the model **and** the entity data, export both packs again.
 
-Exported settings are saved inside the `.bbmodel` project and restored on the next export.
+Your export settings are saved in the `.bbmodel` file and come back on the next export.
+
+## Inherited animations
+
+Several models with the same bones can share their animations with one parent model.
+
+1. Save the child model, then click **Animation > Inherit Animations...** in the Animate tab and
+   choose the parent `.bbmodel`.
+2. The parent's animations are copied into a group named after the parent. They are saved in the
+   child file, so the mod reads them like any other animation.
+3. When the parent changes, the child offers a sync the next time you open it or switch to its tab.
+   **Animation > Sync Inherited Animations...** shows each animation's status. Only the checked
+   animations are replaced.
+
+You can still edit inherited animations. Blockbench warns you once, and the sync dialog does not
+check them by default. Your own animations, including ones with the same name as a parent
+animation, are never touched. To unlink the parent, clear the field in **Inherit Animations...**.
 
 ## Blockbench settings
 
 Two optional settings under **File > Preferences > Settings > Export**:
 
-- **Show advanced customization** — unlocks the *Customize settings* checkbox in the export dialog.
-- **Show experimental presets** — reveals presets that the mod loads but whose specialized movement
-  or behavior is still in development. Off by default.
+- **Show advanced customization**: adds *Customize settings* to the export dialog. There you can
+  change size, movement, behavior, attributes, rendering, animation and the shoulder pose.
+- **Show experimental presets**: adds the *Custom* preset and presets that are not finished yet.
+  Off by default.

@@ -24,7 +24,9 @@
  */
 
 const {Validator} = __webpack_require__(229);
+const {normalizeName} = __webpack_require__(151);
 const {parseExternalLocation} = __webpack_require__(834);
+const {LocalizedError, t} = __webpack_require__(16);
 
 class BlockbenchAdapter {
   static PROJECT_PROPERTY = 'eme_export';
@@ -42,6 +44,10 @@ class BlockbenchAdapter {
     return bytes;
   }
 
+  static #allOf(typeName) {
+    return globalThis[typeName]?.all || [];
+  }
+
   static #firstTexture() {
     if (typeof Texture === 'undefined') {
       return null;
@@ -50,33 +56,31 @@ class BlockbenchAdapter {
     return Texture.getDefault?.() || Texture.all?.[0] || null;
   }
 
-  static collectTextures() {
-    if (typeof Texture === 'undefined' || !Texture.all) {
-      return [];
-    }
-
-    return Texture.all.map((texture, position) => ({
+  static #describeTexture(texture, position) {
+    return {
       index: position,
       name: texture.name || '',
       namespace: texture.namespace || '',
       folder: texture.folder || '',
-      path: texture.path || '',
+      path: texture.path || ''
+    };
+  }
+
+  static collectTextureLocations() {
+    return BlockbenchAdapter.#allOf('Texture').map((texture, position) =>
+        BlockbenchAdapter.#describeTexture(texture, position));
+  }
+
+  static collectTextures() {
+    return BlockbenchAdapter.#allOf('Texture').map((texture, position) => ({
+      ...BlockbenchAdapter.#describeTexture(texture, position),
       bytes: BlockbenchAdapter.#base64ToBytes(texture.getBase64())
     }));
   }
 
   static #externalTextureLocations() {
-    if (typeof Texture === 'undefined' || !Texture.all) {
-      return [];
-    }
-
-    return Texture.all
-    .map((texture) => parseExternalLocation({
-      namespace: texture.namespace,
-      folder: texture.folder,
-      name: texture.name,
-      path: texture.path
-    }))
+    return BlockbenchAdapter.collectTextureLocations()
+    .map(parseExternalLocation)
     .filter((location) => location && !location.startsWith('minecraft:'));
   }
 
@@ -117,11 +121,98 @@ class BlockbenchAdapter {
     };
   }
 
+  static #outlinerList(key) {
+    return typeof Outliner !== 'undefined' && Outliner[key] ? Outliner[key]
+        : [];
+  }
+
+  static #hasUnsupportedFaceRotation(cube) {
+    return Object.values(cube.faces || {}).some(
+        (face) => !!face?.rotation && face.rotation % 90 !== 0);
+  }
+
+  static #hasMixedFaceTextures(cube) {
+    const faceTextures = Object.values(cube.faces || {})
+    .map((face) => face?.texture)
+    .filter((faceTexture) => faceTexture !== null && faceTexture !== undefined
+        && faceTexture !== false);
+
+    return new Set(faceTextures).size > 1;
+  }
+
+  static #hasCustomUvSize(texture) {
+    return typeof Format !== 'undefined' && !!Format?.per_texture_uv_size
+        && ((texture.uv_width ?? Project.texture_width)
+            !== Project.texture_width
+            || (texture.uv_height ?? Project.texture_height)
+            !== Project.texture_height);
+  }
+
+  static #collectGeometry() {
+    const elements = BlockbenchAdapter.#outlinerList('elements');
+    const rootNodes = BlockbenchAdapter.#outlinerList('root');
+    const groups = BlockbenchAdapter.#allOf('Group');
+    const textures = BlockbenchAdapter.#allOf('Texture');
+    const cubes = elements.filter((element) => element.type === 'cube');
+    const names = (list) => list.map((node) => node.name || '');
+
+    return {
+      formatId: typeof Format !== 'undefined' && Format ? Format.id : '',
+      unsupportedElements: elements
+      .filter((element) => element.type !== 'cube')
+      .map((element) => `${element.name || ''} (${element.type})`),
+      rootCubes: names(rootNodes.filter((node) => node.type === 'cube')),
+      rotatedFaceCubes: names(cubes.filter(
+          (cube) => BlockbenchAdapter.#hasUnsupportedFaceRotation(cube))),
+      mixedTextureCubes: names(cubes.filter(
+          (cube) => BlockbenchAdapter.#hasMixedFaceTextures(cube))),
+      customUvSizeTextures: names(textures.filter(
+          (texture) => BlockbenchAdapter.#hasCustomUvSize(texture))),
+      hiddenNodes: names([...groups, ...elements].filter(
+          (node) => node.visibility === false)),
+      exportedGroupNames: names(groups.filter(
+          (group) => BlockbenchAdapter.#isExported(group)))
+    };
+  }
+
+  static #isExported(node) {
+    for (let current = node; current && typeof current === 'object';
+        current = current.parent) {
+      if (current.export === false) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  static getModelFileSize() {
+    if (typeof Codecs === 'undefined' || !Codecs.project) {
+      return undefined;
+    }
+
+    return String(BlockbenchAdapter.getModelBytes()).length;
+  }
+
+  static getModelLoadStats() {
+    const cubes = BlockbenchAdapter.#allOf('Cube');
+    const groups = BlockbenchAdapter.#allOf('Group');
+    const animations = BlockbenchAdapter.#allOf('Animation');
+    const geometry = BlockbenchAdapter.#collectGeometry();
+
+    return {
+      hasModel: cubes.length > 0 || groups.length > 0,
+      hasTexture: !!BlockbenchAdapter.#firstTexture(),
+      animationCount: animations.length,
+      boneNames: geometry.exportedGroupNames,
+      geometry: geometry
+    };
+  }
+
   static getModelStats() {
-    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
-    const groups = typeof Group !== 'undefined' && Group.all ? Group.all : [];
-    const animations =
-        typeof Animation !== 'undefined' && Animation.all ? Animation.all : [];
+    const cubes = BlockbenchAdapter.#allOf('Cube');
+    const groups = BlockbenchAdapter.#allOf('Group');
+    const animations = BlockbenchAdapter.#allOf('Animation');
     const texture = BlockbenchAdapter.#firstTexture();
 
     let maxDepth = 0;
@@ -138,19 +229,29 @@ class BlockbenchAdapter {
     });
 
     return {
-      hasModel: cubes.length > 0 || groups.length > 0,
-      hasTexture: !!texture,
+      ...BlockbenchAdapter.getModelLoadStats(),
       cubeCount: cubes.length,
       boneCount: groups.length,
-      animationCount: animations.length,
       animations: animations.map(
           (animation) => BlockbenchAdapter.#summarizeAnimation(animation)),
       hierarchyDepth: maxDepth,
-      boneNames: groups.map((group) => group.name),
       externalTextures: BlockbenchAdapter.#externalTextureLocations(),
       textureWidth: texture ? texture.width : undefined,
       textureHeight: texture ? texture.height : undefined
     };
+  }
+
+  static wrapInRootBone(undoLabel) {
+    const rootNodes = [...BlockbenchAdapter.#outlinerList('root')];
+    Undo.initEdit({outliner: true});
+    const root = rootNodes.find(
+            (node) => node.type === 'group' && normalizeName(node.name) === 'root')
+        || new Group({name: 'root', origin: [0, 0, 0]}).init();
+    rootNodes
+    .filter((node) => node !== root)
+    .forEach((node) => node.addTo(root));
+    Canvas.updateAll();
+    Undo.finishEdit(undoLabel);
   }
 
   static getModelBytes() {
@@ -158,7 +259,7 @@ class BlockbenchAdapter {
   }
 
   static getModelBounds() {
-    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
+    const cubes = BlockbenchAdapter.#allOf('Cube');
     if (cubes.length === 0) {
       return null;
     }
@@ -186,9 +287,7 @@ class BlockbenchAdapter {
   }
 
   static getModelCubes() {
-    const cubes = typeof Cube !== 'undefined' && Cube.all ? Cube.all : [];
-
-    return cubes.map((cube) => ({
+    return BlockbenchAdapter.#allOf('Cube').map((cube) => ({
       from: (cube.from || [0, 0, 0]).slice(),
       to: (cube.to || [0, 0, 0]).slice()
     }));
@@ -231,8 +330,8 @@ class BlockbenchAdapter {
     if (typeof Project !== 'undefined' && Project) {
       Project[BlockbenchAdapter.PROJECT_PROPERTY] = structuredClone(
           settings);
-      if (typeof Blockbench !== 'undefined' && Blockbench.dispatchEvent) {
-        Blockbench.dispatchEvent('eme_settings_saved', {settings});
+      if (typeof Canvas !== 'undefined' && Canvas.updateRenderSides) {
+        Canvas.updateRenderSides();
       }
     }
   }
@@ -300,7 +399,7 @@ class BlockbenchAdapter {
     files.forEach((file) => {
       const result = Validator.validateOutputPath(file.path);
       if (!result.valid) {
-        throw new Error(`${result.code}: ${result.message} (${file.path})`);
+        throw new LocalizedError(`eme.validation.${result.code}`, file.path);
       }
       const fullPath = path.join(rootDir, file.path);
       fs.mkdirSync(path.dirname(fullPath), {recursive: true});
@@ -311,13 +410,986 @@ class BlockbenchAdapter {
     });
   }
 
+  static confirm(title, message, confirmLabel, onConfirm) {
+    Blockbench.showMessageBox(
+        {
+          title: title,
+          message: message,
+          buttons: [confirmLabel, t('eme.button.cancel')],
+          confirm: 0,
+          cancel: 1
+        },
+        (button) => {
+          if (button === 0) {
+            onConfirm();
+          }
+        }
+    );
+  }
+
   static pickDirectory(title) {
     return Blockbench.pickDirectory(
         {title: title, resource_id: 'eme_mod_project'});
   }
+
+  static registerValidatorCheck(id, name, formatIds, collectErrors) {
+    const check = new ValidatorCheck(id, {
+      update_triggers: ['update_selection', 'add_texture'],
+      condition: {formats: formatIds},
+      run() {
+        collectErrors().forEach((issue) => this.fail({message: issue.message}));
+      }
+    });
+    check.name = name;
+
+    return check;
+  }
 }
 
 module.exports = {BlockbenchAdapter};
+
+
+/***/ },
+
+/***/ 44
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/*
+ * Copyright 2026 Markus Bordihn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+const {normalizeName} = __webpack_require__(151);
+const {hashString} = __webpack_require__(803);
+
+const PARENT_FINGERPRINT = 'eme_parent_fingerprint';
+
+const STATUS = Object.freeze({
+  CURRENT: 'current',
+  PARENT_CHANGED: 'parentChanged',
+  LOCAL_CHANGED: 'localChanged',
+  BOTH_CHANGED: 'bothChanged',
+  NEW_IN_PARENT: 'newInParent',
+  REMOVED_LOCALLY: 'removedLocally',
+  MISSING_IN_PARENT: 'missingInParent'
+});
+
+const PRESELECTED_STATUSES = new Set(
+    [STATUS.PARENT_CHANGED, STATUS.NEW_IN_PARENT]);
+const PARENT_UPDATE_STATUSES = new Set(
+    [STATUS.PARENT_CHANGED, STATUS.BOTH_CHANGED, STATUS.NEW_IN_PARENT]);
+const LOCAL_CHANGE_STATUSES = new Set(
+    [STATUS.LOCAL_CHANGED, STATUS.BOTH_CHANGED]);
+
+const BEZIER_FIELDS = ['bezier_linked', 'bezier_left_time',
+  'bezier_left_value', 'bezier_right_time', 'bezier_right_value'];
+const MOLANG_FIELDS = ['anim_time_update', 'blend_weight', 'start_delay',
+  'loop_delay'];
+
+function canonicalValue(value) {
+  if (typeof value === 'number') {
+    return Number(value.toFixed(4));
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed !== '' && Number.isFinite(Number(trimmed))) {
+      return Number(Number(trimmed).toFixed(4));
+    }
+
+    return trimmed;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(canonicalValue);
+  }
+
+  return value ?? '';
+}
+
+function canonicalObject(object) {
+  return Object.fromEntries(Object.keys(object || {}).sort()
+  .map((key) => [key, canonicalValue(object[key])]));
+}
+
+function canonicalKeyframe(keyframe) {
+  const interpolation = keyframe.interpolation || 'linear';
+  const canonical = {
+    channel: keyframe.channel,
+    time: canonicalValue(keyframe.time),
+    interpolation: interpolation,
+    data_points: (keyframe.data_points || []).map(canonicalObject)
+  };
+  if (interpolation === 'bezier') {
+    BEZIER_FIELDS.forEach((field) => {
+      canonical[field] = canonicalValue(keyframe[field]);
+    });
+  }
+
+  return canonical;
+}
+
+function compareKeyframes(first, second) {
+  if (first.channel !== second.channel) {
+    return first.channel < second.channel ? -1 : 1;
+  }
+
+  return first.time - second.time;
+}
+
+function isBone(animator) {
+  return !animator.type || animator.type === 'bone';
+}
+
+function isKnownBone(animator, boneNames) {
+  return !boneNames || !isBone(animator)
+      || boneNames.has(normalizeName(animator.name));
+}
+
+function animatedAnimators(animation) {
+  return Object.values(animation.animators || {})
+  .filter((animator) => (animator.keyframes || []).length > 0);
+}
+
+function canonicalAnimators(animation, boneNames) {
+  const animators = {};
+  animatedAnimators(animation)
+  .filter((animator) => isKnownBone(animator, boneNames))
+  .forEach((animator) => {
+    animators[`${animator.type || 'bone'}:${normalizeName(animator.name)}`] =
+        JSON.stringify({
+          rotation_global: !!animator.rotation_global,
+          quaternion_interpolation: !!animator.quaternion_interpolation,
+          keyframes: animator.keyframes.map(canonicalKeyframe).sort(
+              compareKeyframes)
+        });
+  });
+
+  return animators;
+}
+
+function canonicalSettings(animation) {
+  const settings = {
+    length: canonicalValue(animation.length),
+    loop: animation.loop || 'once',
+    override: !!animation.override
+  };
+  MOLANG_FIELDS.forEach((field) => {
+    settings[field] = canonicalValue(animation[field]);
+  });
+
+  return settings;
+}
+
+function fingerprintAnimation(animation, boneNames) {
+  const animators = canonicalAnimators(animation, boneNames);
+
+  return hashString(JSON.stringify({
+    settings: canonicalSettings(animation),
+    animators: Object.keys(animators).sort().map(
+        (key) => [key, animators[key]])
+  }));
+}
+
+function boneNameSet(bones) {
+  return new Set(bones.map((bone) => normalizeName(bone.name)));
+}
+
+function describeDifferences(parentAnimation, childAnimation, boneNames) {
+  const parentAnimators = canonicalAnimators(parentAnimation, boneNames);
+  const childAnimators = canonicalAnimators(childAnimation, boneNames);
+  const keys = new Set(
+      [...Object.keys(parentAnimators), ...Object.keys(childAnimators)]);
+  const bones = [...keys]
+  .filter((key) => parentAnimators[key] !== childAnimators[key])
+  .map((key) => key.slice(key.indexOf(':') + 1))
+  .sort();
+  const parentSettings = canonicalSettings(parentAnimation);
+  const childSettings = canonicalSettings(childAnimation);
+  const settings = Object.keys(parentSettings)
+  .filter((field) => parentSettings[field] !== childSettings[field])
+  .map((field) => ({
+    field: field,
+    local: childSettings[field],
+    parent: parentSettings[field]
+  }));
+
+  return {bones, settings};
+}
+
+function missingBones(parentAnimation, bones) {
+  const boneNames = boneNameSet(bones);
+
+  return animatedAnimators(parentAnimation)
+  .filter((animator) => !isKnownBone(animator, boneNames))
+  .map((animator) => String(animator.name || ''));
+}
+
+function isInherited(animation, groupName) {
+  return !!animation[PARENT_FINGERPRINT]
+      && (animation.group_name || '') === groupName;
+}
+
+function inheritedStatus(parent, child, boneNames) {
+  const parentFingerprint = fingerprintAnimation(parent, boneNames);
+  const childFingerprint = fingerprintAnimation(child, boneNames);
+  if (parentFingerprint === childFingerprint) {
+    return STATUS.CURRENT;
+  }
+
+  if (parentFingerprint === child[PARENT_FINGERPRINT]) {
+    return STATUS.LOCAL_CHANGED;
+  }
+
+  return childFingerprint === child[PARENT_FINGERPRINT]
+      ? STATUS.PARENT_CHANGED : STATUS.BOTH_CHANGED;
+}
+
+function compareWithParent(
+    {parentAnimations, childAnimations, knownNames, groupName, bones}) {
+  const boneNames = boneNameSet(bones);
+  const known = new Set(knownNames || []);
+  const childrenByName = new Map(
+      childAnimations.map((animation) => [animation.name, animation]));
+  const parentNames = new Set(parentAnimations.map((parent) => parent.name));
+
+  const entries = parentAnimations
+  .map((parent) => ({parent, child: childrenByName.get(parent.name)}))
+  .filter(({child}) => !child || isInherited(child, groupName))
+  .map(({parent, child}) => {
+    const entry = {
+      name: parent.name,
+      parent: parent,
+      child: child,
+      missingBones: missingBones(parent, bones)
+    };
+    if (!child) {
+      return {
+        ...entry,
+        status: known.has(parent.name) ? STATUS.REMOVED_LOCALLY
+            : STATUS.NEW_IN_PARENT
+      };
+    }
+
+    const status = inheritedStatus(parent, child, boneNames);
+
+    return {
+      ...entry,
+      status: status,
+      differences: status === STATUS.CURRENT ? null
+          : describeDifferences(parent, child, boneNames)
+    };
+  });
+
+  childAnimations
+  .filter((child) => isInherited(child, groupName)
+      && !parentNames.has(child.name))
+  .forEach((child) => entries.push({
+    name: child.name,
+    child: child,
+    missingBones: [],
+    status: STATUS.MISSING_IN_PARENT
+  }));
+
+  return entries;
+}
+
+function remapAnimators(animators, bones) {
+  const byUuid = new Map(bones.map((bone) => [bone.uuid, bone]));
+  const byName = new Map(bones.map((bone) => [normalizeName(bone.name), bone]));
+  const remapped = {};
+  Object.entries(animators || {}).forEach(([key, animator]) => {
+    if (!isBone(animator)) {
+      remapped[key] = animator;
+      return;
+    }
+
+    const bone = byUuid.get(key) || byName.get(normalizeName(animator.name));
+    if (bone) {
+      remapped[bone.uuid] = {...animator, name: bone.name};
+    }
+  });
+
+  return remapped;
+}
+
+function createInheritedAnimation(parentAnimation, groupName, bones) {
+  const data = structuredClone(parentAnimation);
+  delete data.uuid;
+  delete data.selected;
+  data.animators = remapAnimators(data.animators, bones);
+  data.group_name = groupName;
+  data[PARENT_FINGERPRINT] = fingerprintAnimation(parentAnimation,
+      boneNameSet(bones));
+
+  return data;
+}
+
+function needsParentUpdate(entries) {
+  return entries.some((entry) => PARENT_UPDATE_STATUSES.has(entry.status));
+}
+
+module.exports = {
+  PARENT_FINGERPRINT,
+  STATUS,
+  PRESELECTED_STATUSES,
+  LOCAL_CHANGE_STATUSES,
+  fingerprintAnimation,
+  boneNameSet,
+  missingBones,
+  isInherited,
+  compareWithParent,
+  remapAnimators,
+  createInheritedAnimation,
+  needsParentUpdate
+};
+
+
+/***/ },
+
+/***/ 982
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/*
+ * Copyright 2026 Markus Bordihn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+const path = __webpack_require__(928);
+const {BlockbenchAdapter} = __webpack_require__(833);
+const {FORMAT_ID} = __webpack_require__(995);
+const {t} = __webpack_require__(16);
+const {
+  PARENT_FINGERPRINT,
+  STATUS,
+  PRESELECTED_STATUSES,
+  LOCAL_CHANGE_STATUSES,
+  fingerprintAnimation,
+  boneNameSet,
+  missingBones,
+  isInherited,
+  compareWithParent,
+  createInheritedAnimation,
+  needsParentUpdate
+} = __webpack_require__(44);
+
+const LINK_KEY = 'emeAnimationParent';
+const PROJECT_LINK = 'eme_animation_parent';
+const MESSAGE_DURATION = 4000;
+
+const checkedParentTimes = new WeakMap();
+const savedStates = new WeakMap();
+const warnedAnimations = new Set();
+const registrations = [];
+let fingerprintProperty;
+let parentAction;
+let syncAction;
+let animationMenuItem;
+let groupMenuItem;
+let nativeFileSystem;
+
+// Blockbench 5 asks the user for every fs request of a plugin, so only an action the user started
+// may ask; background checks use the module only once it was granted.
+function getFileSystem(askPermission) {
+  if (!nativeFileSystem) {
+    nativeFileSystem = requireNativeModule('fs', askPermission
+        ? {message: t('eme.inherit.permission')}
+        : {show_permission_dialog: false});
+  }
+
+  return nativeFileSystem;
+}
+
+function isEmeFormat() {
+  return typeof Format !== 'undefined' && Format?.id === FORMAT_ID;
+}
+
+function getLink(project = Project) {
+  return project?.[PROJECT_LINK] || null;
+}
+
+function isLinked() {
+  return isEmeFormat() && !!getLink();
+}
+
+function parentPathOf(project) {
+  const link = getLink(project);
+  if (!link || !project.save_path) {
+    return null;
+  }
+
+  return path.resolve(path.dirname(project.save_path), link.path);
+}
+
+function groupNameOf(parentPath) {
+  return path.basename(parentPath, path.extname(parentPath));
+}
+
+function samePath(first, second) {
+  const normalize = (file) => SystemInfo.platform === 'win32'
+      ? path.resolve(file).toLowerCase() : path.resolve(file);
+
+  return normalize(first) === normalize(second);
+}
+
+function showMessage(key, ...params) {
+  Blockbench.showQuickMessage(t(key, ...params), MESSAGE_DURATION);
+}
+
+function readParentAnimations(parentPath) {
+  const model = JSON.parse(
+      getFileSystem(true).readFileSync(parentPath, 'utf-8'));
+
+  return Array.isArray(model.animations) ? model.animations : [];
+}
+
+function projectBones() {
+  return Group.all.map((group) => ({uuid: group.uuid, name: group.name}));
+}
+
+// A check the user did not start stays silent when the parent is missing and skips a parent that
+// has not changed since the last check, so switching tabs never asks twice.
+function compareProjectWithParent(userStarted) {
+  const parentPath = isEmeFormat() && parentPathOf(Project);
+  const fs = parentPath && getFileSystem(userStarted);
+  if (!fs) {
+    return null;
+  }
+
+  if (!fs.existsSync(parentPath)) {
+    if (userStarted) {
+      showMessage('eme.inherit.parentMissing', getLink().path);
+    }
+    return null;
+  }
+
+  const modified = fs.statSync(parentPath).mtimeMs;
+  if (!userStarted && checkedParentTimes.get(Project) === modified) {
+    return null;
+  }
+
+  checkedParentTimes.set(Project, modified);
+  try {
+    return {
+      parentPath: parentPath,
+      entries: compareWithParent({
+        parentAnimations: readParentAnimations(parentPath),
+        childAnimations: Animation.all.map(
+            (animation) => animation.getUndoCopy({}, true)),
+        knownNames: getLink().known,
+        groupName: groupNameOf(parentPath),
+        bones: projectBones()
+      })
+    };
+  } catch (error) {
+    console.error(error);
+    showMessage('eme.inherit.parentUnreadable', groupNameOf(parentPath));
+    return null;
+  }
+}
+
+function moveAnimation(animation, index) {
+  const animations = Animation.all;
+  animations.splice(animations.indexOf(animation), 1);
+  animations.splice(index, 0, animation);
+}
+
+function applyEntries(entries, parentPath) {
+  const groupName = groupNameOf(parentPath);
+  const bones = projectBones();
+  const replaced = entries.map((entry) => entry.child && Animation.all.find(
+      (animation) => animation.uuid === entry.child.uuid));
+  const selectedName = Animation.selected?.name;
+
+  Undo.initEdit({animations: replaced.filter(Boolean)});
+  const added = entries.map((entry, index) => {
+    const existing = replaced[index];
+    const position = existing ? Animation.all.indexOf(existing) : -1;
+    existing?.remove(false, false);
+    const animation = new Animation(
+        createInheritedAnimation(entry.parent, groupName, bones)).add(false);
+    if (position >= 0) {
+      moveAnimation(animation, position);
+    }
+
+    return animation;
+  });
+  Undo.finishEdit(t('eme.inherit.undoSync'), {animations: added});
+  added.find((animation) => animation.name === selectedName)?.select();
+
+  const link = getLink();
+  link.known = [...new Set([...link.known,
+    ...entries.map((entry) => entry.name)])];
+}
+
+function applyWithConfirmation(entries, parentPath) {
+  const overwritten = entries
+  .filter((entry) => LOCAL_CHANGE_STATUSES.has(entry.status))
+  .map((entry) => entry.name);
+  const apply = () => {
+    applyEntries(entries, parentPath);
+    showMessage('eme.inherit.updated', entries.length);
+  };
+
+  if (overwritten.length > 0) {
+    BlockbenchAdapter.confirm(t('eme.inherit.title'),
+        t('eme.inherit.overwriteLocal', overwritten.join(', ')),
+        t('eme.inherit.button.replace'), apply);
+  } else {
+    apply();
+  }
+}
+
+function describeEntry(entry) {
+  const parts = [];
+  if (entry.differences?.bones.length) {
+    parts.push(t('eme.inherit.detail.bones',
+        entry.differences.bones.join(', ')));
+  }
+  (entry.differences?.settings || []).forEach((setting) => {
+    parts.push(t('eme.inherit.detail.setting', setting.field,
+        setting.local, setting.parent));
+  });
+  if (entry.missingBones.length) {
+    parts.push(t('eme.inherit.detail.missingBones',
+        entry.missingBones.join(', ')));
+  }
+
+  return parts.join('. ');
+}
+
+function syncFormField(entry) {
+  const label = `${entry.name}: ${t(`eme.inherit.status.${entry.status}`)}`;
+  if (entry.status === STATUS.MISSING_IN_PARENT) {
+    return {type: 'info', text: label};
+  }
+
+  return {
+    label: label,
+    type: 'checkbox',
+    value: PRESELECTED_STATUSES.has(entry.status),
+    description: describeEntry(entry) || undefined
+  };
+}
+
+function showSyncDialog({parentPath, entries}) {
+  const groupName = groupNameOf(parentPath);
+  const changed = entries.filter((entry) => entry.status !== STATUS.CURRENT);
+  if (changed.length === 0) {
+    showMessage('eme.inherit.upToDate', groupName);
+    return;
+  }
+
+  const form = {intro: {type: 'info', text: t('eme.inherit.syncInfo')}};
+  changed.forEach((entry, index) => {
+    form[`animation_${index}`] = syncFormField(entry);
+  });
+  new Dialog({
+    id: 'eme_animation_sync',
+    title: t('eme.inherit.syncTitle', groupName),
+    width: 600,
+    form: form,
+    buttons: [t('eme.inherit.button.apply'), t('eme.button.cancel')],
+    onConfirm(result) {
+      const chosen = changed.filter(
+          (entry, index) => result[`animation_${index}`] === true);
+      if (chosen.length > 0) {
+        applyWithConfirmation(chosen, parentPath);
+      }
+    }
+  }).show();
+}
+
+function openSyncDialog() {
+  const comparison = compareProjectWithParent(true);
+  if (comparison) {
+    showSyncDialog(comparison);
+  }
+}
+
+function takeFromParent(animation) {
+  const comparison = compareProjectWithParent(true);
+  if (!comparison) {
+    return;
+  }
+
+  const {parentPath, entries} = comparison;
+  const entry = entries.find(
+      (candidate) => candidate.child?.uuid === animation.uuid);
+  if (!entry || entry.status === STATUS.MISSING_IN_PARENT) {
+    showMessage('eme.inherit.notInParent', animation.name,
+        groupNameOf(parentPath));
+  } else if (entry.status === STATUS.CURRENT) {
+    showMessage('eme.inherit.animationUpToDate', animation.name);
+  } else {
+    applyWithConfirmation([entry], parentPath);
+  }
+}
+
+function checkParent(project, userStarted) {
+  if (project !== Project) {
+    return;
+  }
+
+  const comparison = compareProjectWithParent(userStarted);
+  if (!comparison || !needsParentUpdate(comparison.entries)) {
+    return;
+  }
+
+  const countOf = (...statuses) => comparison.entries.filter(
+      (entry) => statuses.includes(entry.status)).length;
+  Blockbench.showMessageBox({
+    title: t('eme.inherit.title'),
+    message: t('eme.inherit.parentUpdated',
+        groupNameOf(comparison.parentPath),
+        countOf(STATUS.PARENT_CHANGED, STATUS.BOTH_CHANGED),
+        countOf(STATUS.NEW_IN_PARENT)),
+    buttons: [t('eme.inherit.button.openSync'), t('eme.inherit.button.later')],
+    confirm: 0,
+    cancel: 1
+  }, (button) => {
+    if (button === 0) {
+      showSyncDialog(comparison);
+    }
+  });
+}
+
+function reportLinked(entries, parentPath) {
+  const bones = projectBones();
+  const missing = [...new Set(
+      entries.flatMap((entry) => missingBones(entry.parent, bones)))];
+  if (missing.length > 0) {
+    Blockbench.showMessageBox({
+      title: t('eme.inherit.title'),
+      message: t('eme.inherit.linkedMissingBones', entries.length,
+          groupNameOf(parentPath), missing.join(', '))
+    });
+  } else {
+    showMessage('eme.inherit.linked', entries.length, groupNameOf(parentPath));
+  }
+}
+
+function linkParent(parentPath) {
+  if (samePath(parentPath, Project.save_path)) {
+    showMessage('eme.inherit.linkSelf');
+    return;
+  }
+
+  const fs = getFileSystem(true);
+  if (!fs) {
+    return;
+  }
+
+  let parentAnimations;
+  try {
+    parentAnimations = readParentAnimations(parentPath);
+  } catch (error) {
+    console.error(error);
+    showMessage('eme.inherit.parentUnreadable', groupNameOf(parentPath));
+    return;
+  }
+  if (parentAnimations.length === 0) {
+    showMessage('eme.inherit.parentEmpty', groupNameOf(parentPath));
+    return;
+  }
+
+  const boneNames = boneNameSet(projectBones());
+  const entries = parentAnimations.map((parent) => ({
+    name: parent.name,
+    parent: parent,
+    child: Animation.all.find((animation) => animation.name === parent.name)
+  }));
+  const replaced = entries
+  .filter((entry) => entry.child
+      && fingerprintAnimation(entry.child.getUndoCopy(), boneNames)
+      !== fingerprintAnimation(entry.parent, boneNames))
+  .map((entry) => entry.name);
+  const link = () => {
+    Project[PROJECT_LINK] = {
+      path: path.relative(path.dirname(Project.save_path), parentPath)
+      .split(path.sep).join('/'),
+      known: []
+    };
+    applyEntries(entries, parentPath);
+    checkedParentTimes.set(Project, fs.statSync(parentPath).mtimeMs);
+    reportLinked(entries, parentPath);
+  };
+
+  if (replaced.length > 0) {
+    BlockbenchAdapter.confirm(t('eme.inherit.title'),
+        t('eme.inherit.linkReplaces', groupNameOf(parentPath),
+            replaced.join(', ')),
+        t('eme.inherit.button.replace'), link);
+  } else {
+    link();
+  }
+}
+
+function unlinkParent() {
+  const groupName = groupNameOf(getLink().path);
+  BlockbenchAdapter.confirm(t('eme.inherit.title'),
+      t('eme.inherit.unlinkConfirm', groupName),
+      t('eme.inherit.button.unlink'), () => {
+        const inherited = Animation.all.filter(
+            (animation) => isInherited(animation, groupName));
+        Undo.initEdit({animations: inherited});
+        inherited.forEach((animation) => {
+          animation[PARENT_FINGERPRINT] = '';
+          animation.group_name = '';
+        });
+        Undo.finishEdit(t('eme.inherit.button.unlink'),
+            {animations: inherited});
+        delete Project[PROJECT_LINK];
+        Project.saved = false;
+        showMessage('eme.inherit.unlinked', groupName);
+      });
+}
+
+function openParentDialog() {
+  if (!Project?.save_path) {
+    showMessage('eme.inherit.saveFirst');
+    return;
+  }
+
+  const currentParent = parentPathOf(Project) || '';
+  new Dialog({
+    id: 'eme_animation_parent',
+    title: t('eme.inherit.parentDialogTitle'),
+    width: 560,
+    form: {
+      info: {type: 'info', text: t('eme.inherit.parentDialogInfo')},
+      parent: {
+        label: t('eme.inherit.parentModel'),
+        type: 'file',
+        extensions: ['bbmodel'],
+        filetype: 'Blockbench Model',
+        value: currentParent
+      }
+    },
+    onConfirm(result) {
+      const chosen = String(result.parent || '').trim();
+      if (!chosen) {
+        if (getLink()) {
+          unlinkParent();
+        }
+      } else if (currentParent && samePath(chosen, currentParent)) {
+        openSyncDialog();
+      } else {
+        linkParent(chosen);
+      }
+    }
+  }).show();
+}
+
+function findChildModels(parentPath) {
+  const fs = getFileSystem(false);
+  if (!fs) {
+    return [];
+  }
+
+  const folder = path.dirname(parentPath);
+
+  return fs.readdirSync(folder)
+  .filter((file) => file.endsWith('.bbmodel'))
+  .map((file) => path.join(folder, file))
+  .filter((file) => !samePath(file, parentPath))
+  .filter((file) => {
+    try {
+      const text = fs.readFileSync(file, 'utf-8');
+      if (!text.includes(LINK_KEY)) {
+        return false;
+      }
+
+      const linkPath = JSON.parse(text)[LINK_KEY]?.path;
+      return typeof linkPath === 'string'
+          && samePath(path.resolve(folder, linkPath), parentPath);
+    } catch (error) {
+      console.warn(`[Easy Model Entities] Skipped unreadable ${file}:`, error);
+      return false;
+    }
+  })
+  .map((file) => path.basename(file, '.bbmodel'));
+}
+
+function notifyChildModels(project) {
+  try {
+    const children = findChildModels(project.save_path);
+    if (children.length > 0) {
+      Blockbench.showToastNotification({
+        text: t('eme.inherit.childrenNotified', children.join(', ')),
+        icon: 'sync',
+        expire: 6000
+      });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function handleSavedStateChanged({project, saved}) {
+  const wasUnsaved = savedStates.get(project) === false;
+  savedStates.set(project, saved);
+  if (saved && wasUnsaved && project.save_path
+      && project.format?.id === FORMAT_ID) {
+    notifyChildModels(project);
+  }
+}
+
+function editedAnimations(aspects) {
+  const before = Undo.current_save?.aspects?.animations || [];
+  const edited = (aspects?.animations || []).filter(
+      (animation) => before.includes(animation));
+  if (aspects?.keyframes?.length && Animation.selected) {
+    edited.push(Animation.selected);
+  }
+
+  return edited;
+}
+
+// A sync adds new animation objects and an unlink clears the fingerprint first, so neither of
+// them triggers this warning.
+function handleFinishEdit({aspects}) {
+  if (!isLinked()) {
+    return;
+  }
+
+  const groupName = groupNameOf(getLink().path);
+  const animation = editedAnimations(aspects).find(
+      (candidate) => isInherited(candidate, groupName)
+          && !warnedAnimations.has(candidate.uuid));
+  if (animation) {
+    warnedAnimations.add(animation.uuid);
+    showMessage('eme.inherit.editWarning', animation.name, groupName);
+  }
+}
+
+function handleCompile({model}) {
+  if (isLinked()) {
+    model[LINK_KEY] = getLink();
+  }
+}
+
+function handleParse({model}) {
+  const link = model?.[LINK_KEY];
+  if (typeof link?.path === 'string' && link.path) {
+    Project[PROJECT_LINK] = {
+      path: link.path,
+      known: Array.isArray(link.known) ? link.known : []
+    };
+  }
+}
+
+function handleParsed() {
+  const project = Project;
+  setTimeout(() => checkParent(project, true), 0);
+}
+
+function registerAnimationInheritance() {
+  // Blockbench's default merge skips a property whose condition fails, and this condition reads the
+  // animation's own value, so without the custom merge a new animation would never load it.
+  fingerprintProperty = new Property(Animation, 'string', PARENT_FINGERPRINT, {
+    condition: (animation) => !!animation?.[PARENT_FINGERPRINT],
+    merge(animation, data) {
+      animation[PARENT_FINGERPRINT] =
+          typeof data[PARENT_FINGERPRINT] === 'string'
+              ? data[PARENT_FINGERPRINT] : '';
+    }
+  });
+
+  parentAction = new Action('eme_animation_parent', {
+    name: t('eme.inherit.action.parent'),
+    description: t('eme.inherit.action.parentDescription'),
+    icon: 'account_tree',
+    condition: isEmeFormat,
+    click: openParentDialog
+  });
+  syncAction = new Action('eme_animation_sync', {
+    name: t('eme.inherit.action.sync'),
+    description: t('eme.inherit.action.syncDescription'),
+    icon: 'sync',
+    condition: isLinked,
+    click: openSyncDialog
+  });
+  MenuBar.addAction(parentAction, 'animation.#file');
+  MenuBar.addAction(syncAction, 'animation.#file');
+
+  animationMenuItem = {
+    id: 'eme_animation_take_parent',
+    name: t('eme.inherit.action.takeFromParent'),
+    icon: 'sync',
+    condition: (animation) => isLinked() && !!animation
+        && isInherited(animation, groupNameOf(getLink().path)),
+    click: takeFromParent
+  };
+  groupMenuItem = {
+    id: 'eme_animation_sync_group',
+    name: t('eme.inherit.action.sync'),
+    icon: 'sync',
+    condition: (groupName) => isLinked()
+        && groupName === groupNameOf(getLink().path),
+    click: openSyncDialog
+  };
+  Animation.prototype.menu.addAction(animationMenuItem);
+  Animation.prototype.group_menu?.addAction(groupMenuItem);
+
+  registrations.push(
+      Codecs.project.on('compile', handleCompile),
+      Codecs.project.on('parse', handleParse),
+      Codecs.project.on('parsed', handleParsed),
+      Blockbench.on('select_project',
+          ({project}) => checkParent(project, false)),
+      Blockbench.on('finish_edit', handleFinishEdit),
+      Blockbench.on('saved_state_changed', handleSavedStateChanged));
+}
+
+function unregisterAnimationInheritance() {
+  registrations.splice(0).forEach((registration) => registration?.delete?.());
+  if (animationMenuItem) {
+    Animation.prototype.menu.removeAction(animationMenuItem);
+    Animation.prototype.group_menu?.removeAction(groupMenuItem);
+  }
+  parentAction?.delete();
+  syncAction?.delete();
+  fingerprintProperty?.delete();
+  parentAction = null;
+  syncAction = null;
+  animationMenuItem = null;
+  groupMenuItem = null;
+  fingerprintProperty = null;
+}
+
+module.exports = {
+  registerAnimationInheritance,
+  unregisterAnimationInheritance
+};
 
 
 /***/ },
@@ -352,6 +1424,7 @@ const {hashString} = __webpack_require__(803);
 const {MODEL_TYPE_ENTITY} = __webpack_require__(151);
 const {
   EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_MODEL_ONLY,
   includesDataPack,
   includesResourcePack,
   isSinglePackExport
@@ -359,6 +1432,10 @@ const {
 
 function toJson(value) {
   return JSON.stringify(value, null, 2) + '\n';
+}
+
+function jsonFile(path, value) {
+  return {path: path, content: toJson(value), binary: false};
 }
 
 function pairingVersion(settings, serverProfile) {
@@ -412,25 +1489,16 @@ function textureFiles(textureResolution) {
 
 function datapackFiles(settings, serverProfile) {
   return [
-    {
-      path: 'pack.mcmeta', content: toJson(buildDataPackMcmeta(settings)),
-      binary: false
-    },
-    {
-      path: dataPaths(settings).profile, content: toJson(serverProfile),
-      binary: false
-    }
+    jsonFile('pack.mcmeta', buildDataPackMcmeta(settings)),
+    jsonFile(dataPaths(settings).profile, serverProfile)
   ];
 }
 
 function resourcepackFiles(settings, renderProfile, options) {
   const paths = dataPaths(settings);
   return [
-    {
-      path: 'pack.mcmeta', content: toJson(buildResourcePackMcmeta(settings)),
-      binary: false
-    },
-    {path: paths.renderProfile, content: toJson(renderProfile), binary: false},
+    jsonFile('pack.mcmeta', buildResourcePackMcmeta(settings)),
+    jsonFile(paths.renderProfile, renderProfile),
     {path: paths.model, content: options.modelBytes, binary: true},
     ...textureFiles(options.textureResolution)
   ];
@@ -444,9 +1512,8 @@ function packFileNames(settings) {
 }
 
 function buildPackBundle(settings, options) {
-  const opts = options || {};
   const {serverProfile, renderProfile} = buildProfiles(settings,
-      opts.textureResolution);
+      options.textureResolution);
   const exportType = settings.exportType || EXPORT_TYPE_PACKS;
   const fileNames = packFileNames(settings);
   const withDataPack = includesDataPack(exportType);
@@ -459,7 +1526,7 @@ function buildPackBundle(settings, options) {
     } : null,
     datapack: withDataPack ? datapackFiles(settings, serverProfile) : null,
     resourcepack: withResourcePack
-        ? resourcepackFiles(settings, renderProfile, opts) : null,
+        ? resourcepackFiles(settings, renderProfile, options) : null,
     datapackFileName: fileNames.datapack,
     resourcepackFileName: fileNames.resourcepack,
     serverProfile,
@@ -468,28 +1535,22 @@ function buildPackBundle(settings, options) {
 }
 
 function buildModProjectFiles(settings, options) {
-  const opts = options || {};
-  const renderProfile = buildRenderProfile(settings, opts.textureResolution);
+  const renderProfile = buildRenderProfile(settings,
+      options.textureResolution);
   const paths = dataPaths(settings);
 
   const files = [];
-  const serverProfile = settings.modelOnly ? null : buildServerProfile(
-      settings);
+  const serverProfile = settings.exportType === EXPORT_TYPE_MODEL_ONLY
+      ? null : buildServerProfile(settings);
   stampVersion(settings, serverProfile, renderProfile);
   if (serverProfile) {
-    files.push({
-      path: paths.profile, content: toJson(serverProfile),
-      binary: false
-    });
+    files.push(jsonFile(paths.profile, serverProfile));
   }
 
   files.push(
-      {
-        path: paths.renderProfile, content: toJson(renderProfile),
-        binary: false
-      },
-      {path: paths.model, content: opts.modelBytes, binary: true},
-      ...textureFiles(opts.textureResolution));
+      jsonFile(paths.renderProfile, renderProfile),
+      {path: paths.model, content: options.modelBytes, binary: true},
+      ...textureFiles(options.textureResolution));
 
   return {files, serverProfile, renderProfile};
 }
@@ -526,6 +1587,7 @@ module.exports = {
  */
 
 const {getPackFormats} = __webpack_require__(954);
+const {LocalizedError} = __webpack_require__(16);
 
 function buildPack(descriptor, description) {
   const pack = {pack_format: descriptor.packFormat};
@@ -543,8 +1605,8 @@ function buildPack(descriptor, description) {
 function buildMcmeta(settings, kind, description) {
   const formats = getPackFormats(settings.targetVersion);
   if (!formats) {
-    throw new Error(
-        `Unsupported or disabled target version: ${settings.targetVersion}`);
+    throw new LocalizedError('eme.message.unsupportedTargetVersion',
+        settings.targetVersion);
   }
   return buildPack(formats[kind], description);
 }
@@ -643,12 +1705,14 @@ module.exports = {diffFlat, assignIfPresent};
  */
 
 const {ResourceLocation} = __webpack_require__(20);
+const {MIN_MOD_VERSION} = __webpack_require__(954);
+const {MODEL_TYPE_ENTITY} = __webpack_require__(151);
 const TEMPLATE = __webpack_require__(377);
 
 function buildReadme(settings, fileNames) {
   const id = ResourceLocation.buildResourceLocation(settings.namespace,
       settings.profileId);
-  const modelType = settings.modelType || 'entity';
+  const modelType = settings.modelType || MODEL_TYPE_ENTITY;
   const serverProfileId = ResourceLocation.buildResourceLocation(
       settings.namespace, `${modelType}/${settings.profileId}`);
   return TEMPLATE
@@ -656,6 +1720,7 @@ function buildReadme(settings, fileNames) {
   .replaceAll('{{serverProfileId}}', serverProfileId)
   .replaceAll('{{mcVersion}}',
       `Minecraft: Java Edition ${settings.targetVersion}`)
+  .replaceAll('{{modVersion}}', MIN_MOD_VERSION)
   .replaceAll('{{datapackFile}}', fileNames.datapack)
   .replaceAll('{{resourcepackFile}}', fileNames.resourcepack);
 }
@@ -692,7 +1757,10 @@ const {
   animationMode,
   defaultRenderingSettings,
   defaultAnimationSettings,
-  isCustom,
+  defaultShoulderSettings,
+  normalizeName,
+  isCustomEntity,
+  SCHEMA_VERSION,
   MODEL_TYPE_BLOCK_ENTITY
 } = __webpack_require__(151);
 const {diffFlat, assignIfPresent} = __webpack_require__(640);
@@ -706,9 +1774,10 @@ function toRenderingJson(values) {
   return {
     scale: values.scale,
     shadow_radius: values.shadowRadius,
-    visible_bounds_width: values.visibleBoundsWidth ?? 0,
-    visible_bounds_height: values.visibleBoundsHeight ?? 0,
-    visible_bounds_offset: values.visibleBoundsOffset || [0, 0, 0]
+    visible_bounds_width: values.visibleBoundsWidth,
+    visible_bounds_height: values.visibleBoundsHeight,
+    visible_bounds_offset: values.visibleBoundsOffset,
+    opacity: values.opacity
   };
 }
 
@@ -722,9 +1791,16 @@ function toAnimationJson(values) {
     mode: values.mode,
     swing_speed: values.swingSpeed,
     walk_speed_multiplier: values.walkSpeedMultiplier,
-    idle_strength: values.idleStrength ?? 1,
-    gait: values.gait || 'natural'
+    idle_strength: values.idleStrength,
+    gait: values.gait,
+    variant_mode: values.variantMode
   };
+}
+
+function variantWeightsJson(variantWeights) {
+  return Object.fromEntries(Object.entries(variantWeights)
+  .map(([clipName, weight]) => [normalizeName(clipName), weight])
+  .filter(([clipName, weight]) => clipName.length > 0 && weight !== 1));
 }
 
 function buildAnimation(settings) {
@@ -739,16 +1815,27 @@ function buildAnimation(settings) {
     delete animation.idle_strength;
     delete animation.gait;
   }
+  if (settings.animation.variantMode !== 'none') {
+    assignIfPresent(animation, 'variant_weights',
+        variantWeightsJson(settings.animation.variantWeights));
+  }
 
   return animation;
 }
 
+function buildShoulder(settings) {
+  if (settings.modelType === MODEL_TYPE_BLOCK_ENTITY) {
+    return {};
+  }
+
+  return diffFlat(settings.shoulder, defaultShoulderSettings());
+}
+
 function buildRenderProfile(settings, textureResolution) {
   const renderPreset = renderPresetType(settings);
-  const custom = settings.modelType !== MODEL_TYPE_BLOCK_ENTITY
-      && isCustom(settings.presetType);
+  const custom = isCustomEntity(settings.modelType, settings.presetType);
   const profile = {
-    schema_version: settings.schemaVersion,
+    schema_version: SCHEMA_VERSION,
     preset_type: renderPreset
   };
 
@@ -767,6 +1854,7 @@ function buildRenderProfile(settings, textureResolution) {
 
   assignIfPresent(profile, 'rendering', buildRendering(settings));
   assignIfPresent(profile, 'animation', buildAnimation(settings));
+  assignIfPresent(profile, 'shoulder', buildShoulder(settings));
 
   return profile;
 }
@@ -802,11 +1890,10 @@ module.exports = {
 
 const {
   presetDefaults,
-  presetDimensions,
   movementDefaults,
-  behaviorModeFor,
-  wandersByMovement,
-  isCustom,
+  behaviorDefaults,
+  isCustomEntity,
+  SCHEMA_VERSION,
   DEFAULT_MAX_HEALTH,
   DEFAULT_FOLLOW_RANGE,
   MODEL_TYPE_BLOCK_ENTITY,
@@ -814,31 +1901,52 @@ const {
 } = __webpack_require__(151);
 const {diffFlat, assignIfPresent} = __webpack_require__(640);
 
+function toDimensionsJson(values) {
+  return {
+    width: values.width,
+    height: values.height,
+    eye_height: values.eyeHeight
+  };
+}
+
+function toMovementJson(values) {
+  return {
+    speed: values.speed,
+    step_height: values.stepHeight,
+    gravity: values.gravity
+  };
+}
+
+function toBehaviorJson(values) {
+  return {
+    mode: values.mode,
+    look_at_players: values.lookAtPlayers,
+    random_stroll: values.randomStroll
+  };
+}
+
+function toAttributesJson(values) {
+  return {
+    max_health: values.maxHealth,
+    movement_speed: values.movementSpeed,
+    follow_range: values.followRange
+  };
+}
+
 function effectiveDefaults(settings) {
   const preset = settings.presetType;
   const movementType = settings.host.movementType;
-  const movement = movementDefaults(preset, movementType);
-  const mode = behaviorModeFor(preset, movementType);
 
   return {
-    movement: {
-      speed: movement.speed,
-      step_height: movement.stepHeight,
-      gravity: movement.gravity
-    },
-    behavior: {
-      mode: mode,
-      look_at_players: mode === 'idle_only' || mode === 'ambient',
-      random_stroll: wandersByMovement(movementType) && mode === 'ambient'
-    },
-    attributes: {
-      max_health: DEFAULT_MAX_HEALTH,
-      movement_speed: settings.movement.speed,
-      follow_range: DEFAULT_FOLLOW_RANGE
-    },
-    dimensions: settings.modelType === MODEL_TYPE_BLOCK_ENTITY
-        ? presetDefaults(preset, MODEL_TYPE_BLOCK_ENTITY).dimensions
-        : presetDimensions(preset)
+    movement: toMovementJson(movementDefaults(preset, movementType)),
+    behavior: toBehaviorJson(behaviorDefaults(preset, movementType)),
+    attributes: toAttributesJson({
+      maxHealth: DEFAULT_MAX_HEALTH,
+      movementSpeed: settings.movement.speed,
+      followRange: DEFAULT_FOLLOW_RANGE
+    }),
+    dimensions: toDimensionsJson(
+        presetDefaults(preset, settings.modelType).dimensions)
   };
 }
 
@@ -857,30 +1965,22 @@ function buildEntity(settings, custom) {
 }
 
 function buildDimensions(settings, defaults, custom) {
-  const values = {
-    width: settings.dimensions.width,
-    height: settings.dimensions.height,
-    eye_height: settings.dimensions.eyeHeight
-  };
+  const values = toDimensionsJson(settings.dimensions);
   if (custom) {
     return values;
   }
 
-  return diffFlat(values, {
-    width: defaults.dimensions.width,
-    height: defaults.dimensions.height,
-    eye_height: defaults.dimensions.eyeHeight
-  });
+  return diffFlat(values, defaults.dimensions);
 }
 
 function buildServerProfile(settings) {
   const modelType = settings.modelType || MODEL_TYPE_ENTITY;
   const blockEntity = modelType === MODEL_TYPE_BLOCK_ENTITY;
-  const custom = !blockEntity && isCustom(settings.presetType);
+  const custom = isCustomEntity(modelType, settings.presetType);
   const defaults = effectiveDefaults(settings);
 
   const profile = {
-    schema_version: settings.schemaVersion,
+    schema_version: SCHEMA_VERSION,
     model_type: modelType,
     preset_type: settings.presetType
   };
@@ -893,23 +1993,12 @@ function buildServerProfile(settings) {
       buildDimensions(settings, defaults, custom));
 
   if (!blockEntity) {
-    assignIfPresent(profile, 'movement', diffFlat({
-      speed: settings.movement.speed,
-      step_height: settings.movement.stepHeight,
-      gravity: settings.movement.gravity
-    }, defaults.movement));
-
-    assignIfPresent(profile, 'behavior', diffFlat({
-      mode: settings.behavior.mode,
-      look_at_players: settings.behavior.lookAtPlayers,
-      random_stroll: settings.behavior.randomStroll
-    }, defaults.behavior));
-
-    assignIfPresent(profile, 'attributes', diffFlat({
-      max_health: settings.attributes.maxHealth,
-      movement_speed: settings.attributes.movementSpeed,
-      follow_range: settings.attributes.followRange
-    }, defaults.attributes));
+    assignIfPresent(profile, 'movement', diffFlat(
+        toMovementJson(settings.movement), defaults.movement));
+    assignIfPresent(profile, 'behavior', diffFlat(
+        toBehaviorJson(settings.behavior), defaults.behavior));
+    assignIfPresent(profile, 'attributes', diffFlat(
+        toAttributesJson(settings.attributes), defaults.attributes));
   }
 
   return profile;
@@ -951,8 +2040,40 @@ const {
 const {
   EXPORT_TYPE_RESOURCE_PACK,
   EXPORT_TYPE_DATA_PACK,
-  EXPORT_TYPE_MOD_PROJECT
+  isZipExport
 } = __webpack_require__(984);
+const {LocalizedError, t} = __webpack_require__(16);
+
+const FILE_SYSTEM_ERROR_KEYS = {
+  EACCES: 'eme.error.noPermission',
+  EPERM: 'eme.error.noPermission',
+  EBUSY: 'eme.error.fileInUse',
+  ENOSPC: 'eme.error.diskFull',
+  EROFS: 'eme.error.readOnly',
+  ENOENT: 'eme.error.notFound'
+};
+
+function describeExportError(error) {
+  if (error instanceof LocalizedError) {
+    return error.message;
+  }
+
+  const fileSystemKey = FILE_SYSTEM_ERROR_KEYS[error?.code];
+  if (fileSystemKey && error.path) {
+    return t(fileSystemKey, error.path) + '\n\n'
+        + t('eme.message.errorDetails', error.message);
+  }
+
+  return t('eme.message.unexpectedError', error?.message || String(error));
+}
+
+function showExportError(error) {
+  console.error('[Easy Model Entities] Export failed:', error);
+  Blockbench.showMessageBox({
+    title: t('eme.message.exportFailed'),
+    message: describeExportError(error)
+  });
+}
 
 function zipExportName(settings) {
   const base = `${settings.namespace}_${settings.profileId}`;
@@ -967,78 +2088,78 @@ function zipExportName(settings) {
   return `${base}_eme`;
 }
 
-function exportToZip(settings, options) {
-  return BlockbenchAdapter.exportPackBundle(
-      buildPackBundle(settings, options), zipExportName(settings))
+function exportToZip(settings, options, onWritten) {
+  return Promise.resolve()
+  .then(() => BlockbenchAdapter.exportPackBundle(
+      buildPackBundle(settings, options), zipExportName(settings)))
   .then(() => {
-    Blockbench.showQuickMessage('Easy Model Entities packs exported', 1500);
+    onWritten();
+    Blockbench.showQuickMessage(t('eme.message.packsExported'), 1500);
   })
-  .catch((error) => {
-    Blockbench.showMessageBox({title: 'Export failed', message: String(error)});
-  });
+  .catch(showExportError);
 }
 
-function exportToModProject(settings, options) {
+function exportToModProject(settings, options, onWritten) {
   const rootDir = BlockbenchAdapter.pickDirectory(
-      'Select src/main/resources directory');
+      t('eme.message.selectResourcesDirectory'));
   if (!rootDir) {
     return;
   }
 
-  const {files} = buildModProjectFiles(settings, options);
-  const existing = BlockbenchAdapter.listExistingFiles(rootDir, files);
+  let files;
+  let existing;
+  try {
+    files = buildModProjectFiles(settings, options).files;
+    existing = BlockbenchAdapter.listExistingFiles(rootDir, files);
+  } catch (error) {
+    showExportError(error);
+    return;
+  }
 
   const write = () => {
     try {
       BlockbenchAdapter.writeToDirectory(rootDir, files);
-      Blockbench.showQuickMessage(
-          'Easy Model Entities files written to mod project', 1500);
+      onWritten();
+      Blockbench.showQuickMessage(t('eme.message.modProjectWritten'), 1500);
     } catch (error) {
-      Blockbench.showMessageBox(
-          {title: 'Export failed', message: String(error)});
+      showExportError(error);
     }
   };
 
   if (existing.length > 0) {
-    Blockbench.showMessageBox(
-        {
-          title: 'Overwrite existing files?',
-          message: `${existing.length} file(s) already exist and will be overwritten:\n\n`
-              + existing.join('\n'),
-          buttons: ['Overwrite', 'Cancel'],
-          confirm: 0,
-          cancel: 1
-        },
-        (button) => {
-          if (button === 0) {
-            write();
-          }
-        }
-    );
+    BlockbenchAdapter.confirm(t('eme.message.overwriteTitle'),
+        t('eme.message.overwriteFiles', existing.length) + '\n\n'
+        + existing.map((file) => `- \`${file}\``).join('\n'),
+        t('eme.button.overwrite'), write);
   } else {
     write();
   }
 }
 
-function performExport(settings, target, textureResolution) {
-  BlockbenchAdapter.saveSettings({
+function performExport(settings, textureResolution) {
+  const exportedSettings = {
     ...settings,
-    lastExportedVersion: pairingVersion(settings)
-  });
-
+    lastExportedVersion: pairingVersion(settings),
+    lastExportedTargetVersion: settings.targetVersion
+  };
+  // The exported model has to embed the pairing of this export, while the
+  // project keeps it only once the files are written.
+  BlockbenchAdapter.saveSettings(exportedSettings);
   const options = {
     modelBytes: BlockbenchAdapter.getModelBytes(),
     textureResolution
   };
+  BlockbenchAdapter.saveSettings(settings);
+  const onWritten = () => BlockbenchAdapter.saveSettings(exportedSettings);
 
-  if (target === EXPORT_TYPE_MOD_PROJECT) {
-    return exportToModProject(settings, options);
+  if (isZipExport(settings.exportType)) {
+    return exportToZip(settings, options, onWritten);
   }
 
-  return exportToZip(settings, options);
+  return exportToModProject(settings, options, onWritten);
 }
 
-module.exports = {performExport, zipExportName};
+module.exports = {describeExportError, performExport, zipExportName};
 
 
 /***/ },
@@ -1066,36 +2187,29 @@ module.exports = {performExport, zipExportName};
  */
 
 const {BlockbenchAdapter} = __webpack_require__(833);
-const {pickModelSettings} = __webpack_require__(668);
-const {FORMAT_ID} = __webpack_require__(995);
+const {
+  compactModelSettings,
+  expandModelSettings
+} = __webpack_require__(668);
 
 const EME_SETTINGS_KEY = 'emeSettings';
 
 function handleCompile(event) {
-  if (Format?.id !== FORMAT_ID) {
-    return;
-  }
-
   const settings = BlockbenchAdapter.loadSettings();
   if (!settings) {
     return;
   }
 
-  const picked = pickModelSettings(settings);
-  if (Object.keys(picked).length > 0) {
-    event.model[EME_SETTINGS_KEY] = picked;
+  const compactSettings = compactModelSettings(settings);
+  if (Object.keys(compactSettings).length > 0) {
+    event.model[EME_SETTINGS_KEY] = compactSettings;
   }
 }
 
 function handleParse(event) {
-  const formatId = event.model?.meta?.model_format || event.model?.model_format;
-  if (formatId !== FORMAT_ID) {
-    return;
-  }
-
-  const settings = event.model[EME_SETTINGS_KEY];
+  const settings = event.model?.[EME_SETTINGS_KEY];
   if (settings && typeof settings === 'object') {
-    BlockbenchAdapter.saveSettings(settings);
+    BlockbenchAdapter.saveSettings(expandModelSettings(settings));
   }
 }
 
@@ -1115,7 +2229,7 @@ module.exports = {registerEmeCodecHooks, unregisterEmeCodecHooks};
 /***/ },
 
 /***/ 995
-(module) {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /*
  * Copyright 2026 Markus Bordihn
@@ -1136,6 +2250,8 @@ module.exports = {registerEmeCodecHooks, unregisterEmeCodecHooks};
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const {BlockbenchAdapter} = __webpack_require__(833);
+
 const FORMAT_ID = 'eme_entity';
 
 let emeFormat = null;
@@ -1146,6 +2262,12 @@ function toModelIdentifier(name) {
   .replace(/[^a-z0-9_]/g, '')
   .replace(/_+/g, '_')
   .replace(/^_|_$/g, '');
+}
+
+function renderSides() {
+  const bodyType = BlockbenchAdapter.loadSettings()?.host?.bodyType || 'static';
+
+  return bodyType === 'static' ? 'front' : 'double';
 }
 
 function registerEmeFormat(icon) {
@@ -1161,6 +2283,7 @@ function registerEmeFormat(icon) {
     rotate_cubes: true,
     box_uv: true,
     optional_box_uv: true,
+    uv_rotation: true,
     single_texture: false,
     texture_folder: true,
     bone_rig: true,
@@ -1170,7 +2293,8 @@ function registerEmeFormat(icon) {
     animation_files: false,
     java_edition_mapping: false,
     model_identifier: true,
-    locators: true,
+    locators: false,
+    render_sides: renderSides,
     codec: Codecs.project,
     onActivation() {
       if (Project && !Project.model_identifier && Project.name) {
@@ -1187,7 +2311,12 @@ function unregisterEmeFormat() {
   }
 }
 
-module.exports = {FORMAT_ID, registerEmeFormat, unregisterEmeFormat};
+module.exports = {
+  FORMAT_ID,
+  renderSides,
+  registerEmeFormat,
+  unregisterEmeFormat
+};
 
 
 /***/ },
@@ -1227,8 +2356,8 @@ const EN = {
   'eme.field.customize': 'Customize settings',
   'eme.field.includeExternalTextures': 'Include external textures',
   'eme.field.includeExternalTexturesDescription':
-      'Copy textures from other namespaces into the resource pack instead of '
-      + 'only referencing them. Vanilla minecraft: textures are never copied.',
+      'Copies textures from other mods into this export. Turn it off to only '
+      + 'point to them. Vanilla minecraft: textures are never copied.',
   'eme.field.hostEntityType': 'Host Entity Type',
   'eme.field.movementType': 'Movement Type',
   'eme.field.bodyType': 'Body Type',
@@ -1249,11 +2378,18 @@ const EN = {
   'eme.field.visibleBoundsOffsetX': 'Visible Bounds Offset X',
   'eme.field.visibleBoundsOffsetY': 'Visible Bounds Offset Y',
   'eme.field.visibleBoundsOffsetZ': 'Visible Bounds Offset Z',
+  'eme.field.opacity': 'Opacity (0 - 1)',
   'eme.field.animationMode': 'Animation Mode',
   'eme.field.swingSpeed': 'Swing Speed',
   'eme.field.walkSpeedMultiplier': 'Walk Speed Multiplier',
   'eme.field.idleStrength': 'Idle Strength',
   'eme.field.gait': 'Gait',
+  'eme.field.variantMode': 'Animation Variants',
+  'eme.field.variantWeight': 'Weight of %0',
+  'eme.field.shoulderOffsetX': 'Shoulder Offset X',
+  'eme.field.shoulderOffsetY': 'Shoulder Offset Y',
+  'eme.field.shoulderOffsetZ': 'Shoulder Offset Z',
+  'eme.field.shoulderScale': 'Shoulder Scale',
   'eme.section.host': 'Host',
   'eme.section.dimensions': 'Dimensions',
   'eme.section.movement': 'Movement',
@@ -1261,14 +2397,21 @@ const EN = {
   'eme.section.attributes': 'Attributes',
   'eme.section.rendering': 'Rendering',
   'eme.section.animation': 'Animation',
+  'eme.section.variantWeights': 'Animation Variant Weights',
+  'eme.section.shoulder': 'Shoulder',
   'eme.setting.enable_customization': 'Show advanced customization (Easy Model Entities)',
+  'eme.setting.enable_customization.description':
+      'Shows more settings in the export dialog, like size, movement, '
+      + 'behavior, rendering and animation.',
   'eme.setting.enable_experimental': 'Show experimental presets (Easy Model Entities)',
+  'eme.setting.enable_experimental.description':
+      'Adds the custom preset and presets that are not finished yet.',
   'eme.preset.custom': 'Custom (manual settings)',
   'eme.preset.static': 'Static (no animation, no movement)',
   'eme.preset.statue': 'Statue (display, no movement)',
   'eme.preset.ticking': 'Ticking (server + client tick)',
   'eme.preset.animated': 'Animated (continuous animation)',
-  'eme.preset.animated_randomly': 'Animated randomly (random idle bursts)',
+  'eme.preset.animated_randomly': 'Animated randomly (moves now and then)',
   'eme.preset.humanoid_still': 'Humanoid (2 legs, standing)',
   'eme.preset.humanoid_wandering': 'Humanoid (2 legs, wandering)',
   'eme.preset.quadruped_still': 'Quadruped (4 legs, ground, standing)',
@@ -1310,6 +2453,9 @@ const EN = {
   'eme.animation.automatic': 'Automatic',
   'eme.animation.random_idle': 'Random idle',
   'eme.animation.none': 'None',
+  'eme.variant.random': 'Random',
+  'eme.variant.sequential': 'Sequential',
+  'eme.variant.none': 'None (base clip only)',
   'eme.entity.ground_entity': 'Ground entity',
   'eme.entity.static_entity': 'Static entity',
   'eme.entity.aquatic_entity': 'Aquatic entity',
@@ -1320,7 +2466,184 @@ const EN = {
   'eme.exportType.resource_pack': 'Update: Resource Pack only (ZIP)',
   'eme.exportType.data_pack': 'Update: Data Pack only (ZIP)',
   'eme.exportType.mod_project': 'Standalone: write into mod project',
-  'eme.exportType.model_only': 'Model only: mod integration (no data pack)'
+  'eme.exportType.model_only': 'Model only: mod integration (no data pack)',
+  'eme.dialog.blockingIssues': 'Blocks the export',
+  'eme.dialog.warnings': 'Warnings',
+  'eme.action.wrapInRootBone': 'Wrap in root bone',
+  'eme.validator.modelLoad': 'Easy Model Entities: model loads in the mod',
+  'eme.message.exportBlocked': 'The export is blocked. Please fix these problems first:',
+  'eme.message.exportWarnings': 'Please check these warnings:',
+  'eme.message.exportAnyway': 'Export anyway?',
+  'eme.message.overwriteTitle': 'Overwrite existing files?',
+  'eme.message.overwriteFiles': '%0 file(s) already exist and will be overwritten:',
+  'eme.button.export': 'Export',
+  'eme.button.cancel': 'Cancel',
+  'eme.button.overwrite': 'Overwrite',
+  'eme.validation.more': '%0 and %1 more',
+  'eme.validation.UNSUPPORTED_ELEMENT':
+      'The mod can only load cubes and shows a pink box instead. Remove or '
+      + 'replace: %0',
+  'eme.validation.CUBE_OUTSIDE_GROUP':
+      'Cubes must be inside a group, or the mod does not load the model. Move '
+      + 'them into a group or click "Wrap in root bone": %0',
+  'eme.validation.MISSING_BODY_PART':
+      'The body type %0 needs a group named "%1". Without it, the mod shows a '
+      + 'pink box',
+  'eme.validation.FACE_UV_ROTATION_IGNORED':
+      'Face textures can only be rotated in 90 degree steps. These cubes show '
+      + 'the texture unrotated: %0',
+  'eme.validation.PER_TEXTURE_UV_SIZE':
+      'The mod uses the UV size of the project for all textures. Check these '
+      + 'textures: %0',
+  'eme.validation.MIXED_TEXTURES_PER_CUBE':
+      'The mod supports only one texture per cube. These cubes use more than '
+      + 'one: %0',
+  'eme.validation.HIDDEN_ELEMENT':
+      'Hidden parts are still shown in game: %0',
+  'eme.validation.DUPLICATE_GROUP_NAME':
+      'Some groups have the same name. Upper and lower case and spaces at the '
+      + 'start or end do not count. The mod cannot tell these groups apart in '
+      + 'animations and for held items: %0',
+  'eme.validation.DUPLICATE_ANIMATION_NAME':
+      'Some animations have the same name. Upper and lower case and spaces at '
+      + 'the start or end do not count. The mod only keeps the last one: %0',
+  'eme.validation.TARGET_VERSION_CHANGED':
+      'The last export was for Minecraft %0, this one is for Minecraft %1. '
+      + 'Packs for different versions do not work together',
+  'eme.validation.NO_PAIRED_EXPORT':
+      'This project was never exported with both packs, so this pack may not '
+      + 'fit the one you installed. Export both packs instead',
+  'eme.validation.INVALID_NUMERIC': '%0 must be a number',
+  'eme.validation.range': '%0 must be between %1 and %2',
+  'eme.validation.positive': '%0 must be greater than 0',
+  'eme.validation.choice': '%0 must be one of %1',
+  'eme.validation.budget.textureSize': 'Texture larger than %0x%0',
+  'eme.validation.budget.modelSize': 'Model file larger than %0 MB',
+  'eme.validation.budget.cubeCount': 'More than %0 cubes',
+  'eme.validation.budget.boneCount': 'More than %0 bones',
+  'eme.validation.budget.hierarchyDepth':
+      'Groups nested more than %0 levels deep',
+  'eme.validation.INVALID_NAMESPACE': 'Invalid namespace "%0". Try "%1"',
+  'eme.validation.INVALID_PROFILE_ID': 'Invalid profile ID "%0". Try "%1"',
+  'eme.validation.INVALID_RESOURCE_LOCATION': 'Invalid host entity type: %0',
+  'eme.validation.INVALID_PRESET_TYPE': 'Invalid preset type: %0',
+  'eme.validation.MISSING_MODEL': 'The project has no model',
+  'eme.validation.MISSING_TEXTURE': 'The project has no texture',
+  'eme.validation.EXTERNAL_TEXTURE_REFERENCE':
+      'These textures are not part of the export: %0. Install the mod or pack '
+      + 'they come from, or turn on "%1"',
+  'eme.validation.HIGH_ANIMATION_COUNT':
+      'More than %0 animations. The mod does not load the model',
+  'eme.validation.SOFT_ANIMATION_COUNT': 'More than %0 animations',
+  'eme.validation.CUSTOM_ANIMATION_CLIP':
+      'These animations never play on their own, only by command: %0. Names '
+      + 'that play on their own: %1 and numbered variants like idle_2',
+  'eme.validation.UNSUPPORTED_ANIMATION_EXPRESSION':
+      'Animation "%0" uses formulas in keyframes. The mod only supports plain '
+      + 'numbers and skips this animation',
+  'eme.validation.UNSUPPORTED_ANIMATION_CHANNEL':
+      'Animation "%0" uses the "%1" channel. The mod ignores it',
+  'eme.validation.ANIMATIONS_NEVER_PLAYED':
+      'The preset %0 has no animations, so these never play: %1. Pick an '
+      + 'animated preset',
+  'eme.validation.DUPLICATE_TEXTURE_INDEX':
+      'Texture slot %0 is assigned more than once',
+  'eme.validation.INVALID_TEXTURE_LOCATION':
+      'Texture slot %0 points to the invalid location %1, check its namespace '
+      + 'and folder',
+  'eme.validation.MISSING_TEXTURE_INDEX':
+      'Texture slot 0 is missing, the model has no primary texture',
+  'eme.validation.INVALID_OUTPUT_PATH': 'A file to write has no path',
+  'eme.validation.PATH_TRAVERSAL':
+      'The path %0 leads outside the selected folder',
+  'eme.validation.ABSOLUTE_PATH':
+      'The path %0 must be relative to the selected folder',
+  'eme.texture.custom': 'Custom Texture',
+  'eme.message.openProjectFirst': 'Open a project first',
+  'eme.message.packsExported': 'Easy Model Entities packs exported',
+  'eme.message.modProjectWritten':
+      'Easy Model Entities files written to mod project',
+  'eme.message.exportFailed': 'Export failed',
+  'eme.message.unsupportedTargetVersion':
+      'Minecraft %0 is not supported as target version. Choose another one in '
+      + 'the export dialog',
+  'eme.message.unexpectedError':
+      'Something unexpected went wrong. If this happens again, please report '
+      + 'it with these details:\n\n%0',
+  'eme.message.errorDetails': 'Details: %0',
+  'eme.error.noPermission':
+      'No permission to write %0. Choose another folder or check the folder '
+      + 'permissions',
+  'eme.error.fileInUse':
+      '%0 is in use by another program. Close it and try again',
+  'eme.error.diskFull': 'Not enough disk space to write %0',
+  'eme.error.readOnly': '%0 is on a read-only drive',
+  'eme.error.notFound':
+      'The folder for %0 no longer exists. Choose the folder again',
+  'eme.message.selectResourcesDirectory': 'Select src/main/resources directory',
+  'eme.inherit.title': 'Inherited Animations',
+  'eme.inherit.permission':
+      'Reads the parent model to keep inherited animations in sync',
+  'eme.inherit.action.parent': 'Inherit Animations...',
+  'eme.inherit.action.parentDescription':
+      'Takes over the animations of a parent model and keeps them in sync.',
+  'eme.inherit.action.sync': 'Sync Inherited Animations...',
+  'eme.inherit.action.syncDescription':
+      'Compares the inherited animations with the parent model.',
+  'eme.inherit.action.takeFromParent': 'Take From Parent',
+  'eme.inherit.parentDialogTitle': 'Inherit Animations',
+  'eme.inherit.parentDialogInfo':
+      'Choose a parent model. Its animations are copied into this model as '
+      + 'their own group and saved with it, so the mod still reads them. '
+      + 'Clear the field to unlink the parent.',
+  'eme.inherit.parentModel': 'Parent Model',
+  'eme.inherit.syncTitle': 'Sync With %0',
+  'eme.inherit.syncInfo':
+      'Checked animations are replaced by the version of the parent model. '
+      + 'Unchecked animations stay as they are.',
+  'eme.inherit.status.parentChanged': 'changed in parent',
+  'eme.inherit.status.localChanged': 'changed here',
+  'eme.inherit.status.bothChanged': 'changed here and in parent',
+  'eme.inherit.status.newInParent': 'new in parent',
+  'eme.inherit.status.removedLocally': 'deleted here',
+  'eme.inherit.status.missingInParent': 'no longer in parent, stays here',
+  'eme.inherit.detail.bones': 'Bones: %0',
+  'eme.inherit.detail.setting': '%0: %1 here, %2 in parent',
+  'eme.inherit.detail.missingBones': 'Bones missing in this model: %0',
+  'eme.inherit.overwriteLocal':
+      'Your changes to %0 will be replaced by the parent version.',
+  'eme.inherit.linkReplaces':
+      'These animations differ from %0 and will be replaced: %1',
+  'eme.inherit.unlinkConfirm':
+      'Unlink %0? The animations stay in this model as normal animations.',
+  'eme.inherit.button.apply': 'Apply',
+  'eme.inherit.button.replace': 'Replace',
+  'eme.inherit.button.unlink': 'Unlink',
+  'eme.inherit.button.openSync': 'Open Sync',
+  'eme.inherit.button.later': 'Later',
+  'eme.inherit.undoSync': 'Sync inherited animations',
+  'eme.inherit.saveFirst': 'Save the model first, the parent is stored '
+      + 'relative to it',
+  'eme.inherit.linkSelf': 'A model cannot be its own parent',
+  'eme.inherit.parentMissing': 'Parent model %0 not found',
+  'eme.inherit.parentUnreadable': 'Parent model %0 could not be read',
+  'eme.inherit.parentEmpty': 'Parent model %0 has no animations',
+  'eme.inherit.linked': '%0 animations inherited from %1',
+  'eme.inherit.linkedMissingBones':
+      '%0 animations inherited from %1. These bones do not exist in this '
+      + 'model and are skipped: %2',
+  'eme.inherit.unlinked': '%0 unlinked',
+  'eme.inherit.upToDate': 'All animations match %0',
+  'eme.inherit.animationUpToDate': '%0 already matches the parent',
+  'eme.inherit.notInParent': '%0 does not exist in %1',
+  'eme.inherit.updated': '%0 animations updated',
+  'eme.inherit.parentUpdated':
+      'The parent model %0 has changed: %1 changed and %2 new animations.',
+  'eme.inherit.childrenNotified':
+      'These models inherit animations from this one and will offer the '
+      + 'update when opened: %0',
+  'eme.inherit.editWarning':
+      '%0 is inherited from %1, a sync can replace this change',
 };
 
 const DE = {
@@ -1336,8 +2659,9 @@ const DE = {
   'eme.field.customize': 'Einstellungen anpassen',
   'eme.field.includeExternalTextures': 'Externe Texturen mitliefern',
   'eme.field.includeExternalTexturesDescription':
-      'Texturen aus anderen Namespaces ins Resource Pack kopieren statt sie nur '
-      + 'zu referenzieren. Vanilla-Texturen (minecraft:) werden nie kopiert.',
+      'Kopiert Texturen aus anderen Mods in diesen Export. Ausgeschaltet wird '
+      + 'nur auf sie verwiesen. Vanilla-Texturen (minecraft:) werden nie '
+      + 'kopiert.',
   'eme.field.hostEntityType': 'Host-Entität',
   'eme.field.movementType': 'Bewegungsart',
   'eme.field.bodyType': 'Körpertyp',
@@ -1358,11 +2682,18 @@ const DE = {
   'eme.field.visibleBoundsOffsetX': 'Sichtbarkeitsbox-Versatz X',
   'eme.field.visibleBoundsOffsetY': 'Sichtbarkeitsbox-Versatz Y',
   'eme.field.visibleBoundsOffsetZ': 'Sichtbarkeitsbox-Versatz Z',
+  'eme.field.opacity': 'Deckkraft (0 - 1)',
   'eme.field.animationMode': 'Animationsmodus',
   'eme.field.swingSpeed': 'Schwunggeschwindigkeit',
   'eme.field.walkSpeedMultiplier': 'Geh-Geschwindigkeitsfaktor',
   'eme.field.idleStrength': 'Leerlauf-Intensität',
   'eme.field.gait': 'Gangart',
+  'eme.field.variantMode': 'Animationsvarianten',
+  'eme.field.variantWeight': 'Gewichtung von %0',
+  'eme.field.shoulderOffsetX': 'Schulter-Versatz X',
+  'eme.field.shoulderOffsetY': 'Schulter-Versatz Y',
+  'eme.field.shoulderOffsetZ': 'Schulter-Versatz Z',
+  'eme.field.shoulderScale': 'Schulter-Skalierung',
   'eme.section.host': 'Host',
   'eme.section.dimensions': 'Abmessungen',
   'eme.section.movement': 'Bewegung',
@@ -1370,14 +2701,22 @@ const DE = {
   'eme.section.attributes': 'Attribute',
   'eme.section.rendering': 'Darstellung',
   'eme.section.animation': 'Animation',
+  'eme.section.variantWeights': 'Gewichtung der Animationsvarianten',
+  'eme.section.shoulder': 'Schulter',
   'eme.setting.enable_customization': 'Erweiterte Anpassung anzeigen (Easy Model Entities)',
-  'eme.setting.enable_experimental': 'Experimentelle Presets anzeigen (Easy Model Entities)',
+  'eme.setting.enable_customization.description':
+      'Zeigt im Export-Dialog weitere Einstellungen, etwa Größe, Bewegung, '
+      + 'Verhalten, Darstellung und Animation.',
+  'eme.setting.enable_experimental': 'Experimentelle Vorlagen anzeigen (Easy Model Entities)',
+  'eme.setting.enable_experimental.description':
+      'Zeigt die benutzerdefinierte Vorlage und Vorlagen, die noch nicht '
+      + 'fertig sind.',
   'eme.preset.custom': 'Benutzerdefiniert (manuelle Einstellungen)',
   'eme.preset.static': 'Statisch (keine Animation, keine Bewegung)',
   'eme.preset.statue': 'Statue (Anzeige, keine Bewegung)',
   'eme.preset.ticking': 'Tickend (Server- + Client-Tick)',
   'eme.preset.animated': 'Animiert (durchgehende Animation)',
-  'eme.preset.animated_randomly': 'Zufällig animiert (zufällige Leerlauf-Schübe)',
+  'eme.preset.animated_randomly': 'Zufällig animiert (bewegt sich ab und zu)',
   'eme.preset.humanoid_still': 'Humanoid (2 Beine, stehend)',
   'eme.preset.humanoid_wandering': 'Humanoid (2 Beine, umherlaufend)',
   'eme.preset.quadruped_still': 'Vierbeiner (4 Beine, Boden, stehend)',
@@ -1419,6 +2758,9 @@ const DE = {
   'eme.animation.automatic': 'Automatisch',
   'eme.animation.random_idle': 'Zufälliger Leerlauf',
   'eme.animation.none': 'Keine',
+  'eme.variant.random': 'Zufällig',
+  'eme.variant.sequential': 'Der Reihe nach',
+  'eme.variant.none': 'Keine (nur Basis-Clip)',
   'eme.entity.ground_entity': 'Boden-Entität',
   'eme.entity.static_entity': 'Statische Entität',
   'eme.entity.aquatic_entity': 'Wasser-Entität',
@@ -1429,7 +2771,193 @@ const DE = {
   'eme.exportType.resource_pack': 'Update: Nur Resource Pack (ZIP)',
   'eme.exportType.data_pack': 'Update: Nur Data Pack (ZIP)',
   'eme.exportType.mod_project': 'Standalone: in Mod-Projekt schreiben',
-  'eme.exportType.model_only': 'Nur Modell: Mod-Integration (kein Data Pack)'
+  'eme.exportType.model_only': 'Nur Modell: Mod-Integration (kein Data Pack)',
+  'eme.dialog.blockingIssues': 'Blockiert den Export',
+  'eme.dialog.warnings': 'Warnungen',
+  'eme.action.wrapInRootBone': 'In Root-Bone einpacken',
+  'eme.validator.modelLoad': 'Easy Model Entities: Modell lädt im Mod',
+  'eme.message.exportBlocked': 'Der Export ist blockiert. Bitte behebe zuerst diese Probleme:',
+  'eme.message.exportWarnings': 'Bitte prüfe diese Warnungen:',
+  'eme.message.exportAnyway': 'Trotzdem exportieren?',
+  'eme.message.overwriteTitle': 'Vorhandene Dateien überschreiben?',
+  'eme.message.overwriteFiles': '%0 Datei(en) sind bereits vorhanden und werden überschrieben:',
+  'eme.button.export': 'Exportieren',
+  'eme.button.cancel': 'Abbrechen',
+  'eme.button.overwrite': 'Überschreiben',
+  'eme.validation.more': '%0 und %1 weitere',
+  'eme.validation.UNSUPPORTED_ELEMENT':
+      'Der Mod kann nur Würfel laden und zeigt stattdessen eine pinke Box. '
+      + 'Entfernen oder ersetzen: %0',
+  'eme.validation.CUBE_OUTSIDE_GROUP':
+      'Würfel müssen in einer Gruppe liegen, sonst lädt der Mod das Modell '
+      + 'nicht. Verschiebe sie in eine Gruppe oder klicke auf "In Root-Bone '
+      + 'einpacken": %0',
+  'eme.validation.MISSING_BODY_PART':
+      'Der Körpertyp %0 braucht eine Gruppe mit dem Namen "%1". Ohne sie zeigt '
+      + 'der Mod eine pinke Box',
+  'eme.validation.FACE_UV_ROTATION_IGNORED':
+      'Texturen auf Flächen lassen sich nur in 90-Grad-Schritten drehen. Diese '
+      + 'Würfel zeigen die Textur ungedreht: %0',
+  'eme.validation.PER_TEXTURE_UV_SIZE':
+      'Der Mod nutzt für alle Texturen die UV-Größe des Projekts. Prüfe diese '
+      + 'Texturen: %0',
+  'eme.validation.MIXED_TEXTURES_PER_CUBE':
+      'Der Mod kann nur eine Textur pro Würfel. Diese Würfel nutzen mehrere: %0',
+  'eme.validation.HIDDEN_ELEMENT':
+      'Ausgeblendete Teile sind im Spiel trotzdem zu sehen: %0',
+  'eme.validation.DUPLICATE_GROUP_NAME':
+      'Einige Gruppen haben denselben Namen. Groß- und Kleinschreibung und '
+      + 'Leerzeichen am Anfang oder Ende zählen nicht. Der Mod kann diese '
+      + 'Gruppen bei Animationen und gehaltenen Items nicht unterscheiden: %0',
+  'eme.validation.DUPLICATE_ANIMATION_NAME':
+      'Einige Animationen haben denselben Namen. Groß- und Kleinschreibung und '
+      + 'Leerzeichen am Anfang oder Ende zählen nicht. Der Mod behält nur die '
+      + 'letzte: %0',
+  'eme.validation.TARGET_VERSION_CHANGED':
+      'Der letzte Export war für Minecraft %0, dieser ist für Minecraft %1. '
+      + 'Packs für verschiedene Versionen passen nicht zusammen',
+  'eme.validation.NO_PAIRED_EXPORT':
+      'Dieses Projekt wurde noch nie mit beiden Packs exportiert. Dieses Pack '
+      + 'passt deshalb vielleicht nicht zum installierten. Exportiere lieber '
+      + 'beide Packs',
+  'eme.validation.INVALID_NUMERIC': '%0 muss eine Zahl sein',
+  'eme.validation.range': '%0 muss zwischen %1 und %2 liegen',
+  'eme.validation.positive': '%0 muss größer als 0 sein',
+  'eme.validation.choice': '%0 muss einer dieser Werte sein: %1',
+  'eme.validation.budget.textureSize': 'Textur größer als %0x%0',
+  'eme.validation.budget.modelSize': 'Modelldatei größer als %0 MB',
+  'eme.validation.budget.cubeCount': 'Mehr als %0 Würfel',
+  'eme.validation.budget.boneCount': 'Mehr als %0 Bones',
+  'eme.validation.budget.hierarchyDepth':
+      'Gruppen sind mehr als %0 Ebenen tief verschachtelt',
+  'eme.validation.INVALID_NAMESPACE':
+      'Ungültiger Namespace "%0". Versuche "%1"',
+  'eme.validation.INVALID_PROFILE_ID':
+      'Ungültige Profil-ID "%0". Versuche "%1"',
+  'eme.validation.INVALID_RESOURCE_LOCATION': 'Ungültige Host-Entität: %0',
+  'eme.validation.INVALID_PRESET_TYPE': 'Ungültige Vorlage: %0',
+  'eme.validation.MISSING_MODEL': 'Das Projekt hat kein Modell',
+  'eme.validation.MISSING_TEXTURE': 'Das Projekt hat keine Textur',
+  'eme.validation.EXTERNAL_TEXTURE_REFERENCE':
+      'Diese Texturen sind nicht Teil des Exports: %0. Installiere den Mod '
+      + 'oder das Pack, aus dem sie stammen, oder schalte "%1" ein',
+  'eme.validation.HIGH_ANIMATION_COUNT':
+      'Mehr als %0 Animationen. Der Mod lädt das Modell nicht',
+  'eme.validation.SOFT_ANIMATION_COUNT': 'Mehr als %0 Animationen',
+  'eme.validation.CUSTOM_ANIMATION_CLIP':
+      'Diese Animationen starten nie von selbst, nur per Befehl: %0. Von '
+      + 'selbst starten: %1 und nummerierte Varianten wie idle_2',
+  'eme.validation.UNSUPPORTED_ANIMATION_EXPRESSION':
+      'Die Animation "%0" nutzt Formeln in Keyframes. Der Mod unterstützt nur '
+      + 'einfache Zahlen und überspringt diese Animation',
+  'eme.validation.UNSUPPORTED_ANIMATION_CHANNEL':
+      'Die Animation "%0" nutzt den Kanal "%1". Der Mod ignoriert ihn',
+  'eme.validation.ANIMATIONS_NEVER_PLAYED':
+      'Die Vorlage %0 hat keine Animationen, daher laufen diese nie: %1. '
+      + 'Wähle eine animierte Vorlage',
+  'eme.validation.DUPLICATE_TEXTURE_INDEX':
+      'Textur-Slot %0 ist mehrfach belegt',
+  'eme.validation.INVALID_TEXTURE_LOCATION':
+      'Textur-Slot %0 verweist auf den ungültigen Ort %1. Prüfe Namespace und '
+      + 'Ordner',
+  'eme.validation.MISSING_TEXTURE_INDEX':
+      'Textur-Slot 0 fehlt, das Modell hat keine Haupttextur',
+  'eme.validation.INVALID_OUTPUT_PATH':
+      'Eine zu schreibende Datei hat keinen Pfad',
+  'eme.validation.PATH_TRAVERSAL':
+      'Der Pfad %0 führt aus dem gewählten Ordner heraus',
+  'eme.validation.ABSOLUTE_PATH':
+      'Der Pfad %0 muss relativ zum gewählten Ordner sein',
+  'eme.texture.custom': 'Eigene Textur',
+  'eme.message.openProjectFirst': 'Öffne zuerst ein Projekt',
+  'eme.message.packsExported': 'Easy Model Entities Packs exportiert',
+  'eme.message.modProjectWritten':
+      'Easy Model Entities Dateien in das Mod-Projekt geschrieben',
+  'eme.message.exportFailed': 'Export fehlgeschlagen',
+  'eme.message.unsupportedTargetVersion':
+      'Minecraft %0 wird als Zielversion nicht unterstützt. Wähle im '
+      + 'Export-Dialog eine andere',
+  'eme.message.unexpectedError':
+      'Etwas Unerwartetes ist schiefgelaufen. Wenn das erneut passiert, melde '
+      + 'es bitte mit diesen Details:\n\n%0',
+  'eme.message.errorDetails': 'Details: %0',
+  'eme.error.noPermission':
+      'Keine Berechtigung, %0 zu schreiben. Wähle einen anderen Ordner oder '
+      + 'prüfe die Ordnerrechte',
+  'eme.error.fileInUse':
+      '%0 wird von einem anderen Programm verwendet. Schließe es und versuche '
+      + 'es erneut',
+  'eme.error.diskFull': 'Nicht genug Speicherplatz, um %0 zu schreiben',
+  'eme.error.readOnly': '%0 liegt auf einem schreibgeschützten Laufwerk',
+  'eme.error.notFound':
+      'Der Ordner für %0 existiert nicht mehr. Wähle den Ordner erneut',
+  'eme.message.selectResourcesDirectory': 'Ordner src/main/resources auswählen',
+  'eme.inherit.title': 'Geerbte Animationen',
+  'eme.inherit.permission':
+      'Liest das Parent-Modell, um geerbte Animationen abzugleichen',
+  'eme.inherit.action.parent': 'Animationen erben...',
+  'eme.inherit.action.parentDescription':
+      'Übernimmt die Animationen eines Parent-Modells und hält sie synchron.',
+  'eme.inherit.action.sync': 'Geerbte Animationen abgleichen...',
+  'eme.inherit.action.syncDescription':
+      'Vergleicht die geerbten Animationen mit dem Parent-Modell.',
+  'eme.inherit.action.takeFromParent': 'Vom Parent übernehmen',
+  'eme.inherit.parentDialogTitle': 'Animationen erben',
+  'eme.inherit.parentDialogInfo':
+      'Wähle ein Parent-Modell. Seine Animationen werden als eigene Gruppe in '
+      + 'dieses Modell kopiert und mitgespeichert, der Mod liest sie also '
+      + 'weiterhin. Leere das Feld, um die Verknüpfung zu lösen.',
+  'eme.inherit.parentModel': 'Parent-Modell',
+  'eme.inherit.syncTitle': 'Abgleich mit %0',
+  'eme.inherit.syncInfo':
+      'Markierte Animationen werden durch die Version des Parent-Modells '
+      + 'ersetzt. Nicht markierte bleiben unverändert.',
+  'eme.inherit.status.parentChanged': 'im Parent geändert',
+  'eme.inherit.status.localChanged': 'hier geändert',
+  'eme.inherit.status.bothChanged': 'hier und im Parent geändert',
+  'eme.inherit.status.newInParent': 'neu im Parent',
+  'eme.inherit.status.removedLocally': 'hier gelöscht',
+  'eme.inherit.status.missingInParent': 'nicht mehr im Parent, bleibt hier',
+  'eme.inherit.detail.bones': 'Bones: %0',
+  'eme.inherit.detail.setting': '%0: hier %1, im Parent %2',
+  'eme.inherit.detail.missingBones': 'In diesem Modell fehlende Bones: %0',
+  'eme.inherit.overwriteLocal':
+      'Deine Änderungen an %0 werden durch die Parent-Version ersetzt.',
+  'eme.inherit.linkReplaces':
+      'Diese Animationen weichen von %0 ab und werden ersetzt: %1',
+  'eme.inherit.unlinkConfirm':
+      '%0 lösen? Die Animationen bleiben als normale Animationen in diesem '
+      + 'Modell.',
+  'eme.inherit.button.apply': 'Übernehmen',
+  'eme.inherit.button.replace': 'Ersetzen',
+  'eme.inherit.button.unlink': 'Lösen',
+  'eme.inherit.button.openSync': 'Abgleich öffnen',
+  'eme.inherit.button.later': 'Später',
+  'eme.inherit.undoSync': 'Geerbte Animationen abgleichen',
+  'eme.inherit.saveFirst': 'Speichere das Modell zuerst, der Parent wird '
+      + 'relativ dazu gespeichert',
+  'eme.inherit.linkSelf': 'Ein Modell kann nicht sein eigener Parent sein',
+  'eme.inherit.parentMissing': 'Parent-Modell %0 nicht gefunden',
+  'eme.inherit.parentUnreadable': 'Parent-Modell %0 konnte nicht gelesen '
+      + 'werden',
+  'eme.inherit.parentEmpty': 'Parent-Modell %0 hat keine Animationen',
+  'eme.inherit.linked': '%0 Animationen von %1 geerbt',
+  'eme.inherit.linkedMissingBones':
+      '%0 Animationen von %1 geerbt. Diese Bones gibt es in diesem Modell '
+      + 'nicht, sie werden übersprungen: %2',
+  'eme.inherit.unlinked': '%0 gelöst',
+  'eme.inherit.upToDate': 'Alle Animationen stimmen mit %0 überein',
+  'eme.inherit.animationUpToDate': '%0 stimmt bereits mit dem Parent überein',
+  'eme.inherit.notInParent': '%0 gibt es in %1 nicht',
+  'eme.inherit.updated': '%0 Animationen aktualisiert',
+  'eme.inherit.parentUpdated':
+      'Das Parent-Modell %0 wurde geändert: %1 geänderte und %2 neue '
+      + 'Animationen.',
+  'eme.inherit.childrenNotified':
+      'Diese Modelle erben Animationen von diesem und bieten das Update beim '
+      + 'Öffnen an: %0',
+  'eme.inherit.editWarning':
+      '%0 ist von %1 geerbt, ein Abgleich kann diese Änderung ersetzen',
 };
 
 function registerTranslations() {
@@ -1440,7 +2968,7 @@ function registerTranslations() {
   }
 }
 
-function t(key) {
+function translate(key) {
   if (typeof tl === 'function') {
     const translated = tl(key);
     if (translated && translated !== key) {
@@ -1451,7 +2979,20 @@ function t(key) {
   return EN[key] || key;
 }
 
-module.exports = {EN, DE, registerTranslations, t};
+function t(key, ...params) {
+  return params.reduce(
+      (text, param, index) => text.replaceAll(`%${index}`, String(param)),
+      translate(key));
+}
+
+class LocalizedError extends Error {
+  constructor(key, ...params) {
+    super(t(key, ...params));
+    this.name = 'LocalizedError';
+  }
+}
+
+module.exports = {EN, DE, LocalizedError, registerTranslations, t};
 
 
 /***/ },
@@ -1488,30 +3029,36 @@ class ModelDimensions {
 
   static #EYE_HEIGHT_FACTOR = {biped: 0.9, quadruped: 0.8, static: 0.85};
 
-  static #round(value) {
+  static round(value) {
     return Math.round(value * 1000) / 1000;
   }
 
-  static #isUsableBounds(bounds) {
+  static extentsOf(bounds) {
     if (!bounds) {
-      return false;
+      return null;
     }
 
-    return ['minX', 'minY', 'minZ', 'maxX', 'maxY', 'maxZ'].every(
-        (key) => Number.isFinite(bounds[key]));
+    if (!['minX', 'minY', 'minZ', 'maxX', 'maxY', 'maxZ'].every(
+        (key) => Number.isFinite(bounds[key]))) {
+      return null;
+    }
+
+    return {
+      x: Math.max(0, bounds.maxX - bounds.minX),
+      y: Math.max(0, bounds.maxY - bounds.minY),
+      z: Math.max(0, bounds.maxZ - bounds.minZ)
+    };
   }
 
   static deriveDimensions(bounds, bodyType) {
-    if (!ModelDimensions.#isUsableBounds(bounds)) {
+    const extents = ModelDimensions.extentsOf(bounds);
+    if (!extents) {
       return {...ModelDimensions.FALLBACK};
     }
 
-    const width = Math.max(
-        Math.max(0, bounds.maxX - bounds.minX),
-        Math.max(0, bounds.maxZ - bounds.minZ)
-    ) / ModelDimensions.PIXELS_PER_BLOCK;
-    const height = Math.max(0, bounds.maxY - bounds.minY)
+    const width = Math.max(extents.x, extents.z)
         / ModelDimensions.PIXELS_PER_BLOCK;
+    const height = extents.y / ModelDimensions.PIXELS_PER_BLOCK;
 
     if (width <= 0 || height <= 0) {
       return {...ModelDimensions.FALLBACK};
@@ -1521,9 +3068,9 @@ class ModelDimensions {
         ?? ModelDimensions.#EYE_HEIGHT_FACTOR.static;
 
     return {
-      width: ModelDimensions.#round(width),
-      height: ModelDimensions.#round(height),
-      eyeHeight: ModelDimensions.#round(height * eyeHeightFactor)
+      width: ModelDimensions.round(width),
+      height: ModelDimensions.round(height),
+      eyeHeight: ModelDimensions.round(height * eyeHeightFactor)
     };
   }
 
@@ -1566,7 +3113,8 @@ module.exports = {ModelDimensions};
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const {standardClipNames} = __webpack_require__(151);
+const {standardClipNames, normalizeName} = __webpack_require__(151);
+const {ModelDimensions} = __webpack_require__(763);
 
 class PresetDetector {
   static #CUBE_RATIO = 1.4;
@@ -1574,7 +3122,7 @@ class PresetDetector {
 
   static #names(stats) {
     const boneNames = (stats && stats.boneNames) || [];
-    return boneNames.map((name) => String(name).toLowerCase());
+    return boneNames.map(normalizeName);
   }
 
   static #any(names, ...needles) {
@@ -1584,23 +3132,6 @@ class PresetDetector {
 
   static #count(names, needle) {
     return names.filter((name) => name.includes(needle)).length;
-  }
-
-  static #extents(bounds) {
-    if (!bounds) {
-      return null;
-    }
-
-    if (!['minX', 'minY', 'minZ', 'maxX', 'maxY', 'maxZ'].every(
-        (key) => Number.isFinite(bounds[key]))) {
-      return null;
-    }
-
-    return {
-      x: Math.max(0, bounds.maxX - bounds.minX),
-      y: Math.max(0, bounds.maxY - bounds.minY),
-      z: Math.max(0, bounds.maxZ - bounds.minZ)
-    };
   }
 
   static detect(stats, bounds) {
@@ -1635,7 +3166,7 @@ class PresetDetector {
       return {presetType: 'humanoid_still', reason: 'arm bones'};
     }
 
-    const extents = PresetDetector.#extents(bounds);
+    const extents = ModelDimensions.extentsOf(bounds);
     if (extents && extents.x > 0 && extents.y > 0 && extents.z > 0) {
       if (Math.max(extents.x, extents.y, extents.z) / Math.min(extents.x,
           extents.y, extents.z) <= PresetDetector.#CUBE_RATIO) {
@@ -1693,11 +3224,24 @@ const {
   PRESET_TYPES,
   BLOCK_ENTITY_PRESET_TYPES,
   ANIMATION_CLIPS,
+  ANIMATION_MODES,
+  ANIMATION_VARIANT_MODES,
+  BEHAVIOR_MODES,
+  BODY_TYPES,
+  GAIT_TYPES,
+  MOVEMENT_TYPES,
+  SHOULDER_CLIP,
   MODEL_TYPE_BLOCK_ENTITY,
+  normalizeName,
+  isStandardClip,
   standardClipNames
 } = __webpack_require__(151);
+const {t} = __webpack_require__(16);
 
 const SUPPORTED_ANIMATION_CHANNELS = new Set(['rotation', 'position']);
+const ANY_FINITE = [-Number.MAX_VALUE, Number.MAX_VALUE];
+const NON_NEGATIVE = [0, Number.MAX_VALUE];
+const POSITIVE = 'positive';
 
 class Validator {
   static BUDGETS = {
@@ -1711,7 +3255,8 @@ class Validator {
     softBoneCount: 96,
     maxHierarchyDepth: 32,
     softHierarchyDepth: 24,
-    maxAnimationCount: 16
+    maxAnimationCount: 64,
+    softAnimationCount: 32
   };
 
   static LIMITS = {
@@ -1722,12 +3267,29 @@ class Validator {
   };
 
   static REQUIRED_BODY_PARTS = {
-    quadruped: ['root', 'body', 'head', 'front_left_leg', 'front_right_leg',
+    biped: ['head', 'body', 'left_arm', 'right_arm', 'left_leg', 'right_leg'],
+    quadruped: ['body', 'head', 'front_left_leg', 'front_right_leg',
       'back_left_leg', 'back_right_leg'],
-    biped: ['root', 'head', 'body', 'left_arm', 'right_arm', 'left_leg',
-      'right_leg'],
+    aquatic: ['body'],
+    amphibious: ['body'],
+    winged: ['body', 'head', 'left_wing', 'right_wing'],
+    winged_humanoid: ['body', 'head', 'left_arm', 'right_arm', 'left_wing',
+      'right_wing'],
+    arthropod: ['body', 'head', 'front_left_leg', 'front_right_leg',
+      'middle_front_left_leg', 'middle_front_right_leg',
+      'middle_back_left_leg', 'middle_back_right_leg', 'back_left_leg',
+      'back_right_leg'],
+    cuboid: ['body'],
+    floating: ['body'],
     static: []
   };
+
+  static MAX_LISTED_NAMES = 5;
+
+  static MODEL_LOAD_ERROR_CODES = new Set(['MISSING_TEXTURE',
+    'INVALID_TEXTURE_LOCATION', 'DUPLICATE_TEXTURE_INDEX',
+    'MISSING_TEXTURE_INDEX', 'HIGH_ANIMATION_COUNT', 'MISSING_BODY_PART',
+    'UNSUPPORTED_ELEMENT', 'CUBE_OUTSIDE_GROUP']);
 
   static #isFiniteNumber(value) {
     return typeof value === 'number' && Number.isFinite(value);
@@ -1737,7 +3299,7 @@ class Validator {
     if (!Validator.#isFiniteNumber(value)) {
       errors.push({
         code: 'INVALID_NUMERIC',
-        message: `${label} must be a finite number`
+        message: t('eme.validation.INVALID_NUMERIC', label)
       });
       return false;
     }
@@ -1753,13 +3315,8 @@ class Validator {
 
     errors.push({
       code: code,
-      message: `${label} must be between ${minimum} and ${maximum}`
+      message: t('eme.validation.range', label, minimum, maximum)
     });
-  }
-
-  static #validateNonNegative(errors, code, label, value) {
-    Validator.#validateRange(errors, code, label, value, 0,
-        Number.MAX_VALUE);
   }
 
   static #validatePositive(errors, code, label, value) {
@@ -1767,19 +3324,178 @@ class Validator {
       return;
     }
 
-    errors.push({code: code, message: `${label} must be greater than 0`});
+    errors.push({code: code, message: t('eme.validation.positive', label)});
   }
 
-  static #warnIfOverBudget(warnings, value, soft, max, softWarning,
-      maxWarning) {
-    if (!Validator.#isFiniteNumber(value)) {
-      return;
+  static #choiceChecks(settings) {
+    const {host, behavior, animation} = settings;
+
+    return [
+      ['INVALID_HOST_SETTINGS', 'entity.body_type', host.bodyType, BODY_TYPES],
+      ['INVALID_HOST_SETTINGS', 'entity.movement_type', host.movementType,
+        MOVEMENT_TYPES],
+      ['INVALID_BEHAVIOR_SETTINGS', 'behavior.mode', behavior?.mode,
+        BEHAVIOR_MODES],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.mode', animation.mode,
+        ANIMATION_MODES],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.gait', animation.gait,
+        GAIT_TYPES],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.variant_mode',
+        animation.variantMode, ANIMATION_VARIANT_MODES]
+    ];
+  }
+
+  static #numericChecks(settings) {
+    const limits = Validator.LIMITS;
+    const {dimensions, movement, attributes, rendering, animation} = settings;
+    const dimensionRange = [limits.minDimension, limits.maxDimension];
+    const maxEyeHeight = Number.isFinite(dimensions.height)
+        ? dimensions.height : limits.maxDimension;
+
+    return [
+      ['INVALID_DIMENSIONS', 'dimensions.width', dimensions.width,
+        dimensionRange],
+      ['INVALID_DIMENSIONS', 'dimensions.height', dimensions.height,
+        dimensionRange],
+      ['INVALID_DIMENSIONS', 'dimensions.eye_height', dimensions.eyeHeight,
+        [0, maxEyeHeight]],
+      ['INVALID_MOVEMENT', 'movement.speed', movement.speed,
+        [0, limits.maxMovementSpeed]],
+      ['INVALID_MOVEMENT', 'movement.step_height', movement.stepHeight,
+        [0, limits.maxStepHeight]],
+      ['INVALID_ATTRIBUTES', 'attributes.max_health', attributes.maxHealth,
+        NON_NEGATIVE],
+      ['INVALID_ATTRIBUTES', 'attributes.movement_speed',
+        attributes.movementSpeed, NON_NEGATIVE],
+      ['INVALID_ATTRIBUTES', 'attributes.follow_range', attributes.followRange,
+        NON_NEGATIVE],
+      ['INVALID_RENDER_SETTINGS', 'rendering.scale', rendering.scale,
+        POSITIVE],
+      ['INVALID_RENDER_SETTINGS', 'rendering.shadow_radius',
+        rendering.shadowRadius, NON_NEGATIVE],
+      ['INVALID_RENDER_SETTINGS', 'rendering.visible_bounds_width',
+        rendering.visibleBoundsWidth ?? 0, NON_NEGATIVE],
+      ['INVALID_RENDER_SETTINGS', 'rendering.visible_bounds_height',
+        rendering.visibleBoundsHeight ?? 0, NON_NEGATIVE],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.swing_speed',
+        animation.swingSpeed, NON_NEGATIVE],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.walk_speed_multiplier',
+        animation.walkSpeedMultiplier, NON_NEGATIVE],
+      ['INVALID_ANIMATION_SETTINGS', 'animation.idle_strength',
+        animation.idleStrength ?? 1, NON_NEGATIVE],
+      ['INVALID_RENDER_SETTINGS', 'rendering.opacity', rendering.opacity ?? 1,
+        [0, 1]],
+      ...Validator.#variantWeightChecks(animation),
+      ...Validator.#shoulderChecks(settings)
+    ];
+  }
+
+  static #variantWeightChecks(animation) {
+    if (animation.variantMode === 'none') {
+      return [];
     }
-    if (value > max) {
-      warnings.push(maxWarning);
-    } else if (value > soft) {
-      warnings.push(softWarning);
+
+    return Object.entries(animation.variantWeights || {}).map(
+        ([clipName, weight]) => ['INVALID_ANIMATION_SETTINGS',
+          `animation.variant_weights.${clipName}`, weight, POSITIVE]);
+  }
+
+  static #shoulderChecks(settings) {
+    if (settings.modelType === MODEL_TYPE_BLOCK_ENTITY || !settings.shoulder) {
+      return [];
     }
+
+    const offset = settings.shoulder.offset || [0, 0, 0];
+
+    return [
+      ...['x', 'y', 'z'].map((axis, index) => ['INVALID_RENDER_SETTINGS',
+        `shoulder.offset.${axis}`, offset[index], ANY_FINITE]),
+      ['INVALID_RENDER_SETTINGS', 'shoulder.scale',
+        settings.shoulder.scale ?? 1, POSITIVE]
+    ];
+  }
+
+  static #budgetChecks(context) {
+    const budgets = Validator.BUDGETS;
+    const textureSize = Validator.#isFiniteNumber(context.textureWidth)
+    && Validator.#isFiniteNumber(context.textureHeight)
+        ? Math.max(context.textureWidth, context.textureHeight) : undefined;
+    const bytesPerMegabyte = 1024 * 1024;
+
+    return [
+      [textureSize, budgets.softTextureSize, budgets.maxTextureSize,
+        'SOFT_TEXTURE_SIZE', 'LARGE_TEXTURE',
+        (limit) => t('eme.validation.budget.textureSize', limit)],
+      [context.modelFileSize, budgets.softModelFileSizeBytes,
+        budgets.maxModelFileSizeBytes, 'SOFT_MODEL_SIZE', 'LARGE_MODEL',
+        (limit) => t('eme.validation.budget.modelSize',
+            limit / bytesPerMegabyte)],
+      [context.cubeCount, budgets.softCubeCount, budgets.maxCubeCount,
+        'SOFT_CUBE_COUNT', 'HIGH_CUBE_COUNT',
+        (limit) => t('eme.validation.budget.cubeCount', limit)],
+      [context.boneCount, budgets.softBoneCount, budgets.maxBoneCount,
+        'SOFT_BONE_COUNT', 'HIGH_BONE_COUNT',
+        (limit) => t('eme.validation.budget.boneCount', limit)],
+      [context.hierarchyDepth, budgets.softHierarchyDepth,
+        budgets.maxHierarchyDepth, 'SOFT_HIERARCHY_DEPTH', 'DEEP_HIERARCHY',
+        (limit) => t('eme.validation.budget.hierarchyDepth', limit)]
+    ];
+  }
+
+  static #formatNames(names) {
+    const listed = names.slice(0, Validator.MAX_LISTED_NAMES).join(', ');
+    const remaining = names.length - Validator.MAX_LISTED_NAMES;
+
+    return remaining > 0 ? t('eme.validation.more', listed, remaining)
+        : listed;
+  }
+
+  static #pushNamed(issues, code, names, ...params) {
+    if (names && names.length > 0) {
+      issues.push({
+        code: code,
+        message: t(`eme.validation.${code}`, Validator.#formatNames(names),
+            ...params)
+      });
+    }
+  }
+
+  static #duplicateNames(names) {
+    const seen = new Set();
+    const duplicates = new Set();
+    (names || []).map(normalizeName).filter(Boolean).forEach((name) => {
+      if (seen.has(name)) {
+        duplicates.add(name);
+      } else {
+        seen.add(name);
+      }
+    });
+
+    return [...duplicates];
+  }
+
+  static validateGeometry(geometry) {
+    const errors = [];
+    const warnings = [];
+
+    Validator.#pushNamed(errors, 'UNSUPPORTED_ELEMENT',
+        geometry.unsupportedElements);
+    Validator.#pushNamed(errors, 'CUBE_OUTSIDE_GROUP', geometry.rootCubes);
+    Validator.#pushNamed(warnings, 'FACE_UV_ROTATION_IGNORED',
+        geometry.rotatedFaceCubes);
+    Validator.#pushNamed(warnings, 'PER_TEXTURE_UV_SIZE',
+        geometry.customUvSizeTextures);
+    // The mod binds every modded_entity cube to texture 0, so only eme_entity
+    // keeps a texture per cube that a mix on its faces can contradict.
+    if (geometry.formatId === 'eme_entity') {
+      Validator.#pushNamed(warnings, 'MIXED_TEXTURES_PER_CUBE',
+          geometry.mixedTextureCubes);
+    }
+    Validator.#pushNamed(warnings, 'HIDDEN_ELEMENT', geometry.hiddenNodes);
+    Validator.#pushNamed(warnings, 'DUPLICATE_GROUP_NAME',
+        Validator.#duplicateNames(geometry.exportedGroupNames));
+
+    return {errors, warnings};
   }
 
   static validateSettings(settings, context) {
@@ -1790,27 +3506,15 @@ class Validator {
     if (!ResourceLocation.isValidNamespace(settings.namespace)) {
       errors.push({
         code: 'INVALID_NAMESPACE',
-        message: `Invalid namespace: ${settings.namespace}, use for example `
-            + `${ResourceLocation.sanitizeNamespace(settings.namespace)}`
+        message: t('eme.validation.INVALID_NAMESPACE', settings.namespace,
+            ResourceLocation.sanitizeNamespace(settings.namespace))
       });
     }
     if (!ResourceLocation.isValidPath(settings.profileId)) {
       errors.push({
         code: 'INVALID_PROFILE_ID',
-        message: `Invalid profile ID: ${settings.profileId}, use for example `
-            + `${ResourceLocation.sanitizeProfileId(settings.profileId)}`
-      });
-    }
-
-    const id = `${settings.namespace}:${settings.profileId}`;
-    if (
-        ResourceLocation.isValidNamespace(settings.namespace) &&
-        ResourceLocation.isValidPath(settings.profileId) &&
-        !ResourceLocation.isValidResourceLocation(id)
-    ) {
-      errors.push({
-        code: 'INVALID_RESOURCE_LOCATION',
-        message: `Invalid resource location: ${id}`
+        message: t('eme.validation.INVALID_PROFILE_ID', settings.profileId,
+            ResourceLocation.sanitizeProfileId(settings.profileId))
       });
     }
     const blockEntity = settings.modelType === MODEL_TYPE_BLOCK_ENTITY;
@@ -1819,65 +3523,47 @@ class Validator {
             settings.host.entityType)) {
       errors.push({
         code: 'INVALID_RESOURCE_LOCATION',
-        message: `Invalid host entity type: ${settings.host.entityType}`
+        message: t('eme.validation.INVALID_RESOURCE_LOCATION',
+            settings.host.entityType)
       });
     }
     const validPresets = blockEntity ? BLOCK_ENTITY_PRESET_TYPES : PRESET_TYPES;
     if (!validPresets.includes(settings.presetType)) {
       errors.push({
         code: 'INVALID_PRESET_TYPE',
-        message: `Invalid preset type: ${settings.presetType}`
+        message: t('eme.validation.INVALID_PRESET_TYPE', settings.presetType)
       });
     }
 
-    const limits = Validator.LIMITS;
-    const {width, height, eyeHeight} = settings.dimensions;
-    Validator.#validateRange(errors, 'INVALID_DIMENSIONS', 'dimensions.width',
-        width, limits.minDimension, limits.maxDimension);
-    Validator.#validateRange(errors, 'INVALID_DIMENSIONS', 'dimensions.height',
-        height, limits.minDimension, limits.maxDimension);
-    Validator.#validateRange(errors, 'INVALID_DIMENSIONS',
-        'dimensions.eye_height', eyeHeight, 0,
-        Number.isFinite(height) ? height : limits.maxDimension);
-
-    Validator.#validateRange(errors, 'INVALID_MOVEMENT', 'movement.speed',
-        settings.movement.speed, 0, limits.maxMovementSpeed);
-    Validator.#validateRange(errors, 'INVALID_MOVEMENT',
-        'movement.step_height', settings.movement.stepHeight, 0,
-        limits.maxStepHeight);
-
-    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
-        'attributes.max_health', settings.attributes.maxHealth);
-    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
-        'attributes.movement_speed', settings.attributes.movementSpeed);
-    Validator.#validateNonNegative(errors, 'INVALID_ATTRIBUTES',
-        'attributes.follow_range', settings.attributes.followRange);
-
-    const rendering = settings.rendering;
-    Validator.#validatePositive(errors, 'INVALID_RENDER_SETTINGS',
-        'rendering.scale', rendering.scale);
-    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
-        'rendering.shadow_radius', rendering.shadowRadius);
-    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
-        'rendering.visible_bounds_width', rendering.visibleBoundsWidth ?? 0);
-    Validator.#validateNonNegative(errors, 'INVALID_RENDER_SETTINGS',
-        'rendering.visible_bounds_height', rendering.visibleBoundsHeight ?? 0);
-
-    const animation = settings.animation;
-    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
-        'animation.swing_speed', animation.swingSpeed);
-    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
-        'animation.walk_speed_multiplier', animation.walkSpeedMultiplier);
-    Validator.#validateNonNegative(errors, 'INVALID_ANIMATION_SETTINGS',
-        'animation.idle_strength', animation.idleStrength ?? 1);
+    for (const [code, label, value, range] of Validator.#numericChecks(
+        settings)) {
+      if (range === POSITIVE) {
+        Validator.#validatePositive(errors, code, label, value);
+      } else {
+        Validator.#validateRange(errors, code, label, value, ...range);
+      }
+    }
+    for (const [code, field, value, choices] of Validator.#choiceChecks(
+        settings)) {
+      if (value !== undefined && !choices.includes(value)) {
+        errors.push({
+          code: code,
+          message: t('eme.validation.choice', field, choices.join(', '))
+        });
+      }
+    }
 
     if (ctx.hasModel === false) {
-      errors.push(
-          {code: 'MISSING_MODEL', message: 'No model present in project'});
+      errors.push({
+        code: 'MISSING_MODEL',
+        message: t('eme.validation.MISSING_MODEL')
+      });
     }
     if (ctx.hasTexture === false) {
-      errors.push(
-          {code: 'MISSING_TEXTURE', message: 'No texture present in project'});
+      errors.push({
+        code: 'MISSING_TEXTURE',
+        message: t('eme.validation.MISSING_TEXTURE')
+      });
     }
     (ctx.textureIssues || []).forEach((issue) => errors.push(issue));
 
@@ -1885,94 +3571,64 @@ class Validator {
     if (referencedTextures.length > 0) {
       warnings.push({
         code: 'EXTERNAL_TEXTURE_REFERENCE',
-        message: `${referencedTextures.join(
-                ', ')} stays a reference and is not `
-            + 'part of the export; the mod or pack providing it has to be '
-            + 'installed, or enable "Include external textures"'
+        message: t('eme.validation.EXTERNAL_TEXTURE_REFERENCE',
+            referencedTextures.join(', '),
+            t('eme.field.includeExternalTextures'))
       });
     }
 
-    if (Validator.#isFiniteNumber(ctx.textureWidth)
-        && Validator.#isFiniteNumber(ctx.textureHeight)) {
-      const textureSize = Math.max(ctx.textureWidth, ctx.textureHeight);
-      Validator.#warnIfOverBudget(warnings, textureSize,
-          Validator.BUDGETS.softTextureSize, Validator.BUDGETS.maxTextureSize,
-          {
-            code: 'SOFT_TEXTURE_SIZE',
-            message: `Texture larger than ${Validator.BUDGETS.softTextureSize}x${Validator.BUDGETS.softTextureSize}`
-          },
-          {
-            code: 'LARGE_TEXTURE',
-            message: `Texture larger than ${Validator.BUDGETS.maxTextureSize}x${Validator.BUDGETS.maxTextureSize}`
-          });
+    for (const [value, soft, max, softCode, maxCode, describe]
+        of Validator.#budgetChecks(ctx)) {
+      if (!Validator.#isFiniteNumber(value)) {
+        continue;
+      }
+      if (value > max) {
+        warnings.push({code: maxCode, message: describe(max)});
+      } else if (value > soft) {
+        warnings.push({code: softCode, message: describe(soft)});
+      }
     }
-    Validator.#warnIfOverBudget(warnings, ctx.modelFileSize,
-        Validator.BUDGETS.softModelFileSizeBytes,
-        Validator.BUDGETS.maxModelFileSizeBytes,
-        {
-          code: 'SOFT_MODEL_SIZE',
-          message: 'Model file larger than 1 MB'
-        },
-        {code: 'LARGE_MODEL', message: 'Model file larger than 2 MB'});
-    Validator.#warnIfOverBudget(warnings, ctx.cubeCount,
-        Validator.BUDGETS.softCubeCount, Validator.BUDGETS.maxCubeCount,
-        {
-          code: 'SOFT_CUBE_COUNT',
-          message: `More than ${Validator.BUDGETS.softCubeCount} cubes`
-        },
-        {
-          code: 'HIGH_CUBE_COUNT',
-          message: `More than ${Validator.BUDGETS.maxCubeCount} cubes`
-        });
-    Validator.#warnIfOverBudget(warnings, ctx.boneCount,
-        Validator.BUDGETS.softBoneCount, Validator.BUDGETS.maxBoneCount,
-        {
-          code: 'SOFT_BONE_COUNT',
-          message: `More than ${Validator.BUDGETS.softBoneCount} bones`
-        },
-        {
-          code: 'HIGH_BONE_COUNT',
-          message: `More than ${Validator.BUDGETS.maxBoneCount} bones`
-        });
-    Validator.#warnIfOverBudget(warnings, ctx.hierarchyDepth,
-        Validator.BUDGETS.softHierarchyDepth,
-        Validator.BUDGETS.maxHierarchyDepth,
-        {
-          code: 'SOFT_HIERARCHY_DEPTH',
-          message: `Hierarchy deeper than ${Validator.BUDGETS.softHierarchyDepth}`
-        },
-        {
-          code: 'DEEP_HIERARCHY',
-          message: `Hierarchy deeper than ${Validator.BUDGETS.maxHierarchyDepth}`
-        });
+    const budgets = Validator.BUDGETS;
     if (Validator.#isFiniteNumber(ctx.animationCount)
-        && ctx.animationCount > Validator.BUDGETS.maxAnimationCount) {
+        && ctx.animationCount > budgets.maxAnimationCount) {
       errors.push({
         code: 'HIGH_ANIMATION_COUNT',
-        message: `More than ${Validator.BUDGETS.maxAnimationCount} animations; the mod refuses to load the model`
+        message: t('eme.validation.HIGH_ANIMATION_COUNT',
+            budgets.maxAnimationCount)
+      });
+    } else if (Validator.#isFiniteNumber(ctx.animationCount)
+        && ctx.animationCount > budgets.softAnimationCount) {
+      warnings.push({
+        code: 'SOFT_ANIMATION_COUNT',
+        message: t('eme.validation.SOFT_ANIMATION_COUNT',
+            budgets.softAnimationCount)
       });
     }
 
+    Validator.#pushNamed(warnings, 'DUPLICATE_ANIMATION_NAME',
+        Validator.#duplicateNames(
+            (ctx.animations || []).map((animation) => animation.name)));
+    Validator.#pushNamed(warnings, 'CUSTOM_ANIMATION_CLIP',
+        (ctx.animations || []).filter((animation) => {
+          const name = normalizeName(animation.name);
+          const shoulderClip = !blockEntity && name === SHOULDER_CLIP;
+
+          return !isStandardClip(name) && !shoulderClip;
+        }).map((animation) => animation.name), ANIMATION_CLIPS.join(', '));
     (ctx.animations || []).forEach((animation) => {
-      const name = String(animation.name || '').toLowerCase();
-      if (!ANIMATION_CLIPS.includes(name)) {
-        warnings.push({
-          code: 'CUSTOM_ANIMATION_CLIP',
-          message: `Animation "${animation.name}" is not one of ${ANIMATION_CLIPS.join(
-              ', ')} and is never played automatically; it can only be played by name via command or API`
-        });
-      }
       if (animation.hasExpression) {
         warnings.push({
           code: 'UNSUPPORTED_ANIMATION_EXPRESSION',
-          message: `Animation "${animation.name}" uses expressions; the mod only supports numeric keyframes and drops the clip`
+          message: t('eme.validation.UNSUPPORTED_ANIMATION_EXPRESSION',
+              animation.name)
         });
       }
       (animation.channels || []).forEach((channel) => {
         if (!SUPPORTED_ANIMATION_CHANNELS.has(channel)) {
           warnings.push({
             code: 'UNSUPPORTED_ANIMATION_CHANNEL',
-            message: `Animation "${animation.name}" uses the "${channel}" channel which is ignored by the mod`
+            message: t('eme.validation.UNSUPPORTED_ANIMATION_CHANNEL',
+                animation.name, channel)
           });
         }
       });
@@ -1984,28 +3640,37 @@ class Validator {
             || settings.host.bodyType === 'static')) {
       warnings.push({
         code: 'ANIMATIONS_NEVER_PLAYED',
-        message: `The preset ${settings.presetType} renders without animation, `
-            + `so the mod never plays ${clipNames.join(
-                ', ')}; pick an animated `
-            + 'preset instead'
+        message: t('eme.validation.ANIMATIONS_NEVER_PLAYED',
+            settings.presetType, clipNames.join(', '))
       });
     }
 
     Validator.getMissingBodyParts(settings.host.bodyType,
         ctx.boneNames || []).forEach((part) => {
-      warnings.push({
+      errors.push({
         code: 'MISSING_BODY_PART',
-        message: `Missing recommended body part: ${part}`
+        message: t('eme.validation.MISSING_BODY_PART', settings.host.bodyType,
+            part)
       });
     });
+
+    if (ctx.geometry) {
+      const geometryResult = Validator.validateGeometry(ctx.geometry);
+      errors.push(...geometryResult.errors);
+      warnings.push(...geometryResult.warnings);
+    }
 
     return {errors, warnings, valid: errors.length === 0};
   }
 
+  static validateModelLoad(settings, context) {
+    return Validator.validateSettings(settings, context).errors.filter(
+        (issue) => Validator.MODEL_LOAD_ERROR_CODES.has(issue.code));
+  }
+
   static getMissingBodyParts(bodyType, boneNames) {
     const required = Validator.REQUIRED_BODY_PARTS[bodyType] || [];
-    const present = new Set(
-        (boneNames || []).map((name) => String(name).toLowerCase()));
+    const present = new Set((boneNames || []).map(normalizeName));
 
     return required.filter((part) => !present.has(part));
   }
@@ -2015,7 +3680,7 @@ class Validator {
       return {
         valid: false,
         code: 'INVALID_OUTPUT_PATH',
-        message: 'Empty output path'
+        message: t('eme.validation.INVALID_OUTPUT_PATH')
       };
     }
 
@@ -2024,7 +3689,7 @@ class Validator {
       return {
         valid: false,
         code: 'PATH_TRAVERSAL',
-        message: 'Path traversal detected'
+        message: t('eme.validation.PATH_TRAVERSAL', relativePath)
       };
     }
 
@@ -2032,7 +3697,7 @@ class Validator {
       return {
         valid: false,
         code: 'ABSOLUTE_PATH',
-        message: 'Absolute paths are not allowed'
+        message: t('eme.validation.ABSOLUTE_PATH', relativePath)
       };
     }
 
@@ -2046,7 +3711,7 @@ module.exports = {Validator};
 /***/ },
 
 /***/ 508
-(module) {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /*
  * Copyright 2026 Markus Bordihn
@@ -2067,15 +3732,11 @@ module.exports = {Validator};
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-class VisibleBounds {
-  static PIXELS_PER_BLOCK = 16;
+const {ModelDimensions} = __webpack_require__(763);
 
+class VisibleBounds {
   static #empty() {
     return {width: 0, height: 0, offset: [0, 0, 0]};
-  }
-
-  static #round(value) {
-    return Math.round(value * 1000) / 1000;
   }
 
   static #usableCubes(cubes) {
@@ -2112,30 +3773,31 @@ class VisibleBounds {
       return VisibleBounds.#empty();
     }
 
-    const ppb = VisibleBounds.PIXELS_PER_BLOCK;
+    const pixelsPerBlock = ModelDimensions.PIXELS_PER_BLOCK;
+    const round = ModelDimensions.round;
     const bounds = VisibleBounds.#bounds(usable);
     const xExtent = bounds.max[0] - bounds.min[0];
     const yExtent = bounds.max[1] - bounds.min[1];
     const zExtent = bounds.max[2] - bounds.min[2];
-    const width = Math.max(xExtent, zExtent) / ppb;
-    const height = yExtent / ppb;
+    const width = Math.max(xExtent, zExtent) / pixelsPerBlock;
+    const height = yExtent / pixelsPerBlock;
 
     if (width <= 0 || height <= 0) {
       return VisibleBounds.#empty();
     }
 
     return {
-      width: VisibleBounds.#round(width),
-      height: VisibleBounds.#round(height),
+      width: round(width),
+      height: round(height),
       offset: [
-        VisibleBounds.#round(((bounds.min[0] + bounds.max[0]) / 2) / ppb),
-        VisibleBounds.#round(bounds.min[1] / ppb),
-        VisibleBounds.#round(((bounds.min[2] + bounds.max[2]) / 2) / ppb)
+        round(((bounds.min[0] + bounds.max[0]) / 2) / pixelsPerBlock),
+        round(bounds.min[1] / pixelsPerBlock),
+        round(((bounds.min[2] + bounds.max[2]) / 2) / pixelsPerBlock)
       ]
     };
   }
 
-  static hasVisibleBounds(settings) {
+  static #hasVisibleBounds(settings) {
     const rendering = settings && settings.rendering;
     return !!rendering && rendering.visibleBoundsWidth > 0
         && rendering.visibleBoundsHeight > 0;
@@ -2145,7 +3807,8 @@ class VisibleBounds {
     if (!derived || !settings || !settings.rendering) {
       return settings;
     }
-    if (options?.preserveExisting && VisibleBounds.hasVisibleBounds(settings)) {
+    if (options?.preserveExisting && VisibleBounds.#hasVisibleBounds(
+        settings)) {
       return settings;
     }
 
@@ -2270,15 +3933,75 @@ const BEHAVIOR_MODES = ['idle_only', 'ambient', 'static', 'external_owner'];
 const ANIMATION_MODES = ['automatic', 'random_idle', 'none'];
 const ANIMATION_CLIPS = ['idle', 'walk', 'swim', 'fly', 'hurt', 'death',
   'attack', 'sit'];
+const ANIMATION_VARIANT_MODES = ['random', 'sequential', 'none'];
+const SHOULDER_CLIP = 'shoulder';
+const CLIP_VARIANT_SUFFIX = /^(.+?)[_ ]([1-9][0-9]*)$/;
 const GAIT_TYPES = ['natural', 'feline', 'ungulate'];
 
 const GROUND_ENTITY = 'easy_model_entities:ground_entity';
 const STATIC_ENTITY = 'easy_model_entities:static_entity';
 const AQUATIC_ENTITY = 'easy_model_entities:aquatic_entity';
 const AMPHIBIOUS_ENTITY = 'easy_model_entities:amphibious_entity';
+const HOST_ENTITY_TYPES = [GROUND_ENTITY, STATIC_ENTITY, AQUATIC_ENTITY,
+  AMPHIBIOUS_ENTITY];
 
 const FALLBACK_DIMENSIONS = {width: 0.6, height: 1.8, eyeHeight: 1.62};
 const BLOCK_ENTITY_DIMENSIONS = {width: 1.0, height: 1.0, eyeHeight: 0.5};
+
+const STATIC_FAMILY = {
+  bodyType: 'static',
+  dimensions: FALLBACK_DIMENSIONS,
+  shadowRadius: 0.3
+};
+const PRESET_FAMILIES = new Map([
+  ['humanoid', {...STATIC_FAMILY, bodyType: 'biped'}],
+  ['quadruped', {
+    bodyType: 'quadruped',
+    dimensions: {width: 0.9, height: 0.9, eyeHeight: 0.6},
+    shadowRadius: 0.45
+  }],
+  ['aquatic', {
+    bodyType: 'aquatic',
+    dimensions: {width: 0.7, height: 0.4, eyeHeight: 0.25},
+    shadowRadius: 0.25
+  }],
+  ['amphibious', {
+    bodyType: 'amphibious',
+    dimensions: {width: 0.9, height: 0.6, eyeHeight: 0.4},
+    shadowRadius: 0.45
+  }],
+  ['winged', {
+    bodyType: 'winged',
+    dimensions: {width: 0.6, height: 0.9, eyeHeight: 0.6},
+    shadowRadius: 0.25
+  }],
+  ['winged_humanoid', {
+    bodyType: 'winged_humanoid',
+    dimensions: {width: 0.6, height: 0.8, eyeHeight: 0.6},
+    shadowRadius: 0.25
+  }],
+  ['arthropod', {
+    bodyType: 'arthropod',
+    dimensions: {width: 1.4, height: 0.9, eyeHeight: 0.45},
+    shadowRadius: 0.7
+  }],
+  ['cuboid', {
+    bodyType: 'cuboid',
+    dimensions: BLOCK_ENTITY_DIMENSIONS,
+    shadowRadius: 0.5
+  }],
+  ['floating', {
+    bodyType: 'floating',
+    dimensions: BLOCK_ENTITY_DIMENSIONS,
+    shadowRadius: 0.5
+  }]
+]);
+const PRESET_MOTION_SUFFIX = /_(still|wandering|swimming|hopping)$/;
+
+const DEFAULT_SPEEDS = new Map([['ground', 0.22], ['amphibious', 0.15],
+  ['water', 0.1]]);
+const BLOCK_ENTITY_ANIMATION_MODES = new Map([['animated', 'automatic'],
+  ['animated_randomly', 'random_idle']]);
 
 const DEFAULT_MAX_HEALTH = 10;
 const DEFAULT_FOLLOW_RANGE = 16;
@@ -2313,45 +4036,54 @@ const BLOCK_ENTITY_PRESET_TYPES = [
   'animated_randomly'
 ];
 
-const STABLE_PRESET_TYPES = new Set([
-  'static',
-  'statue',
-  'humanoid_still',
-  'humanoid_wandering',
-  'quadruped_still',
-  'quadruped_wandering',
-  'aquatic_still',
-  'aquatic_swimming',
-  'amphibious_still',
-  'amphibious_wandering',
-  'winged_still',
-  'winged_wandering',
-  'winged_humanoid_still',
-  'winged_humanoid_wandering',
-  'arthropod_still',
-  'arthropod_wandering',
-  'cuboid_still',
-  'cuboid_hopping',
-  'floating_still',
-  // Block entity stable presets.
-  'animated',
-  'animated_randomly'
-]);
+const EXPERIMENTAL_PRESET_TYPES = new Set(['custom', 'ticking']);
 
 const SELECTABLE_PRESET_TYPES = PRESET_TYPES.filter((id) => id !== 'custom');
 
+function normalizeName(name) {
+  return String(name || '').trim().toLowerCase();
+}
+
+function clipBaseName(clipName) {
+  const match = CLIP_VARIANT_SUFFIX.exec(clipName);
+
+  return match ? match[1] : clipName;
+}
+
+function isStandardClip(name) {
+  return ANIMATION_CLIPS.includes(clipBaseName(normalizeName(name)));
+}
+
 function standardClipNames(animations) {
   return (animations || [])
-  .map((animation) => String(animation.name || '').toLowerCase())
-  .filter((name) => ANIMATION_CLIPS.includes(name));
+  .map((animation) => normalizeName(animation.name))
+  .filter(isStandardClip);
+}
+
+function variantClipNames(animations) {
+  const clipNames = [...new Set((animations || [])
+  .map((animation) => normalizeName(animation.name))
+  .filter((clipName) => clipName.length > 0))];
+  const groupSizes = new Map();
+  clipNames.forEach((clipName) => {
+    const baseName = clipBaseName(clipName);
+    groupSizes.set(baseName, (groupSizes.get(baseName) ?? 0) + 1);
+  });
+
+  return clipNames.filter(
+      (clipName) => groupSizes.get(clipBaseName(clipName)) > 1);
 }
 
 function isStablePreset(presetType) {
-  return STABLE_PRESET_TYPES.has(presetType);
+  return !EXPERIMENTAL_PRESET_TYPES.has(presetType);
 }
 
 function isCustom(presetType) {
   return presetType === 'custom';
+}
+
+function isCustomEntity(modelType, presetType) {
+  return modelType !== MODEL_TYPE_BLOCK_ENTITY && isCustom(presetType);
 }
 
 function isStill(presetType) {
@@ -2364,37 +4096,17 @@ function isMoving(presetType) {
       || presetType === 'cuboid_hopping';
 }
 
-function bodyType(presetType) {
-  switch (presetType) {
-    case 'humanoid_still':
-    case 'humanoid_wandering':
-      return 'biped';
-    case 'quadruped_still':
-    case 'quadruped_wandering':
-      return 'quadruped';
-    case 'aquatic_still':
-    case 'aquatic_swimming':
-      return 'aquatic';
-    case 'amphibious_still':
-    case 'amphibious_wandering':
-      return 'amphibious';
-    case 'winged_still':
-    case 'winged_wandering':
-      return 'winged';
-    case 'winged_humanoid_still':
-    case 'winged_humanoid_wandering':
-      return 'winged_humanoid';
-    case 'arthropod_still':
-    case 'arthropod_wandering':
-      return 'arthropod';
-    case 'cuboid_still':
-    case 'cuboid_hopping':
-      return 'cuboid';
-    case 'floating_still':
-      return 'floating';
-    default:
-      return 'static';
+function presetFamily(presetType) {
+  if (!PRESET_TYPES.includes(presetType)) {
+    return STATIC_FAMILY;
   }
+
+  return PRESET_FAMILIES.get(presetType.replace(PRESET_MOTION_SUFFIX, ''))
+      || STATIC_FAMILY;
+}
+
+function bodyType(presetType) {
+  return presetFamily(presetType).bodyType;
 }
 
 function isAquatic(presetType) {
@@ -2430,58 +4142,7 @@ function entityType(presetType) {
 }
 
 function presetDimensions(presetType) {
-  switch (presetType) {
-    case 'quadruped_still':
-    case 'quadruped_wandering':
-      return {width: 0.9, height: 0.9, eyeHeight: 0.6};
-    case 'aquatic_still':
-    case 'aquatic_swimming':
-      return {width: 0.7, height: 0.4, eyeHeight: 0.25};
-    case 'amphibious_still':
-    case 'amphibious_wandering':
-      return {width: 0.9, height: 0.6, eyeHeight: 0.4};
-    case 'winged_still':
-    case 'winged_wandering':
-      return {width: 0.6, height: 0.9, eyeHeight: 0.6};
-    case 'winged_humanoid_still':
-    case 'winged_humanoid_wandering':
-      return {width: 0.6, height: 0.8, eyeHeight: 0.6};
-    case 'arthropod_still':
-    case 'arthropod_wandering':
-      return {width: 1.4, height: 0.9, eyeHeight: 0.45};
-    case 'cuboid_still':
-    case 'cuboid_hopping':
-    case 'floating_still':
-      return {width: 1.0, height: 1.0, eyeHeight: 0.5};
-    default:
-      return {...FALLBACK_DIMENSIONS};
-  }
-}
-
-function presetShadowRadius(presetType) {
-  switch (presetType) {
-    case 'quadruped_still':
-    case 'quadruped_wandering':
-    case 'amphibious_still':
-    case 'amphibious_wandering':
-      return 0.45;
-    case 'aquatic_still':
-    case 'aquatic_swimming':
-    case 'winged_still':
-    case 'winged_wandering':
-    case 'winged_humanoid_still':
-    case 'winged_humanoid_wandering':
-      return 0.25;
-    case 'arthropod_still':
-    case 'arthropod_wandering':
-      return 0.7;
-    case 'cuboid_still':
-    case 'cuboid_hopping':
-    case 'floating_still':
-      return 0.5;
-    default:
-      return 0.3;
-  }
+  return {...presetFamily(presetType).dimensions};
 }
 
 function behaviorModeFor(presetType, move) {
@@ -2500,30 +4161,25 @@ function behaviorModeFor(presetType, move) {
   return 'static';
 }
 
-function behaviorMode(presetType) {
-  return behaviorModeFor(presetType, movementType(presetType));
-}
-
 function wandersByMovement(move) {
   return move === 'ground' || move === 'amphibious' || move === 'water';
 }
 
-function defaultSpeed(move) {
-  switch (move) {
-    case 'ground':
-      return 0.22;
-    case 'amphibious':
-      return 0.15;
-    case 'water':
-      return 0.1;
-    default:
-      return 0;
-  }
+function behaviorForMode(mode, move) {
+  return {
+    mode: mode,
+    lookAtPlayers: mode === 'idle_only' || mode === 'ambient',
+    randomStroll: wandersByMovement(move) && mode === 'ambient'
+  };
+}
+
+function behaviorDefaults(presetType, move) {
+  return behaviorForMode(behaviorModeFor(presetType, move), move);
 }
 
 function movementDefaults(presetType, move) {
   return {
-    speed: defaultSpeed(move),
+    speed: DEFAULT_SPEEDS.get(move) ?? 0,
     stepHeight: move === 'ground' || move === 'amphibious' ? 0.6 : 0,
     gravity: presetType === 'static' || move !== 'static'
   };
@@ -2534,24 +4190,14 @@ function animationMode(presetType) {
   || presetType === 'statue' ? 'none' : 'automatic';
 }
 
-function blockEntityAnimationMode(presetType) {
-  switch (presetType) {
-    case 'animated':
-      return 'automatic';
-    case 'animated_randomly':
-      return 'random_idle';
-    default:
-      return 'none';
-  }
-}
-
 function defaultRenderingSettings(presetType) {
   return {
     scale: 1,
-    shadowRadius: presetShadowRadius(presetType),
+    shadowRadius: presetFamily(presetType).shadowRadius,
     visibleBoundsWidth: 0,
     visibleBoundsHeight: 0,
-    visibleBoundsOffset: [0, 0, 0]
+    visibleBoundsOffset: [0, 0, 0],
+    opacity: 1
   };
 }
 
@@ -2561,13 +4207,18 @@ function defaultAnimationSettings(mode) {
     swingSpeed: 1,
     walkSpeedMultiplier: 1,
     idleStrength: 1,
-    gait: 'natural'
+    gait: 'natural',
+    variantMode: 'random',
+    variantWeights: {}
   };
+}
+
+function defaultShoulderSettings() {
+  return {offset: [0, 0, 0], scale: 1};
 }
 
 function blockEntityPresetDefaults(presetType) {
   return {
-    schemaVersion: SCHEMA_VERSION,
     modelType: MODEL_TYPE_BLOCK_ENTITY,
     presetType: presetType,
     host: {entityType: '', movementType: 'static', bodyType: 'static'},
@@ -2580,7 +4231,8 @@ function blockEntityPresetDefaults(presetType) {
       followRange: DEFAULT_FOLLOW_RANGE
     },
     rendering: defaultRenderingSettings('cuboid_still'),
-    animation: defaultAnimationSettings(blockEntityAnimationMode(presetType))
+    animation: defaultAnimationSettings(
+        BLOCK_ENTITY_ANIMATION_MODES.get(presetType) ?? 'none')
   };
 }
 
@@ -2591,10 +4243,8 @@ function presetDefaults(presetType, modelType) {
 
   const move = movementType(presetType);
   const movement = movementDefaults(presetType, move);
-  const mode = behaviorMode(presetType);
 
   return {
-    schemaVersion: SCHEMA_VERSION,
     modelType: MODEL_TYPE_ENTITY,
     presetType: presetType,
     host: {
@@ -2603,23 +4253,16 @@ function presetDefaults(presetType, modelType) {
       bodyType: bodyType(presetType)
     },
     dimensions: presetDimensions(presetType),
-    movement: {
-      speed: movement.speed,
-      stepHeight: movement.stepHeight,
-      gravity: movement.gravity
-    },
-    behavior: {
-      mode: mode,
-      lookAtPlayers: mode === 'idle_only' || mode === 'ambient',
-      randomStroll: wandersByMovement(move) && mode === 'ambient'
-    },
+    movement: movement,
+    behavior: behaviorDefaults(presetType, move),
     attributes: {
       maxHealth: DEFAULT_MAX_HEALTH,
       movementSpeed: movement.speed,
       followRange: DEFAULT_FOLLOW_RANGE
     },
     rendering: defaultRenderingSettings(presetType),
-    animation: defaultAnimationSettings(animationMode(presetType))
+    animation: defaultAnimationSettings(animationMode(presetType)),
+    shoulder: defaultShoulderSettings()
   };
 }
 
@@ -2637,20 +4280,27 @@ module.exports = {
   BLOCK_ENTITY_PRESET_TYPES,
   ANIMATION_MODES,
   ANIMATION_CLIPS,
+  ANIMATION_VARIANT_MODES,
+  SHOULDER_CLIP,
   GAIT_TYPES,
   SELECTABLE_PRESET_TYPES,
+  HOST_ENTITY_TYPES,
+  normalizeName,
+  isStandardClip,
   standardClipNames,
+  variantClipNames,
   isStablePreset,
   isCustom,
+  isCustomEntity,
   bodyType,
-  behaviorModeFor,
+  behaviorForMode,
+  behaviorDefaults,
   movementDefaults,
-  wandersByMovement,
   animationMode,
-  presetDimensions,
   presetDefaults,
   defaultRenderingSettings,
-  defaultAnimationSettings
+  defaultAnimationSettings,
+  defaultShoulderSettings
 };
 
 
@@ -2682,14 +4332,18 @@ const {MODEL_TYPE_ENTITY, presetDefaults} = __webpack_require__(151);
 const {getDefaultVersionId} = __webpack_require__(954);
 
 const DEFAULT_PRESET = 'statue';
+const DEFAULT_PROFILE_ID = 'entity';
 
-const MODEL_SETTING_KEYS = [
-  'schemaVersion',
+const IDENTITY_KEYS = [
   'modelType',
   'presetType',
   'namespace',
   'profileId',
-  'targetVersion',
+  'targetVersion'
+];
+
+const MODEL_SETTING_KEYS = [
+  ...IDENTITY_KEYS,
   'customize',
   'includeExternalTextures',
   'host',
@@ -2699,22 +4353,15 @@ const MODEL_SETTING_KEYS = [
   'attributes',
   'rendering',
   'animation',
-  'lastExportedVersion'
+  'shoulder',
+  'lastExportedVersion',
+  'lastExportedTargetVersion'
 ];
 
-function pickModelSettings(settings) {
-  if (!settings || typeof settings !== 'object') {
-    return settings;
-  }
-
-  const picked = {};
-  MODEL_SETTING_KEYS.forEach((key) => {
-    if (settings[key] !== undefined) {
-      picked[key] = settings[key];
-    }
-  });
-
-  return picked;
+function pickKeys(settings, keys) {
+  return Object.fromEntries(keys
+  .filter((key) => settings[key] !== undefined)
+  .map((key) => [key, settings[key]]));
 }
 
 function deepMerge(target, source) {
@@ -2723,7 +4370,7 @@ function deepMerge(target, source) {
   });
   Object.keys(source).forEach((key) => {
     const value = source[key];
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
+    if (isPlainObject(value)) {
       result[key] = deepMerge(result[key] || {}, value);
     } else if (Array.isArray(value)) {
       result[key] = value.slice();
@@ -2738,8 +4385,10 @@ function deepMerge(target, source) {
 function getDefaults() {
   return deepMerge(presetDefaults(DEFAULT_PRESET), {
     namespace: 'example_org',
-    profileId: 'entity',
-    targetVersion: getDefaultVersionId()
+    profileId: DEFAULT_PROFILE_ID,
+    targetVersion: getDefaultVersionId(),
+    customize: false,
+    includeExternalTextures: true
   });
 }
 
@@ -2748,12 +4397,55 @@ function applyTemplate(presetType, modelType) {
       presetDefaults(presetType, modelType || MODEL_TYPE_ENTITY));
 }
 
+function isPlainObject(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function differenceFrom(template, value) {
+  if (isPlainObject(value) && isPlainObject(template)) {
+    const difference = {};
+    Object.keys(value).forEach((key) => {
+      const changed = differenceFrom(template[key], value[key]);
+      if (changed !== undefined) {
+        difference[key] = changed;
+      }
+    });
+
+    return Object.keys(difference).length > 0 ? difference : undefined;
+  }
+
+  return JSON.stringify(value) === JSON.stringify(template)
+      ? undefined : value;
+}
+
+function presetTemplate(settings) {
+  return applyTemplate(settings.presetType || DEFAULT_PRESET,
+      settings.modelType);
+}
+
+// Identity keys are kept even at their default, so a changed plugin default
+// never retargets an existing project.
+function compactModelSettings(settings) {
+  const picked = pickKeys(settings, MODEL_SETTING_KEYS);
+
+  return {
+    ...pickKeys(picked, IDENTITY_KEYS),
+    ...differenceFrom(presetTemplate(picked), picked)
+  };
+}
+
+function expandModelSettings(storedSettings) {
+  return deepMerge(presetTemplate(storedSettings), storedSettings);
+}
+
 module.exports = {
   DEFAULT_PRESET,
+  DEFAULT_PROFILE_ID,
   getDefaults,
   applyTemplate,
   deepMerge,
-  pickModelSettings
+  compactModelSettings,
+  expandModelSettings
 };
 
 
@@ -2781,7 +4473,8 @@ module.exports = {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-const DEFAULT_VERSION_ID = '1.20.1';
+const DEFAULT_VERSION_ID = '1.21.1';
+const MIN_MOD_VERSION = '2.5.0';
 
 const VERSIONS = [
   {
@@ -2815,8 +4508,15 @@ const VERSIONS = [
   {
     id: '26.2',
     label: 'Minecraft 26.2',
-    data: {packFormat: 101, minFormat: [101, 1], maxFormat: [101, 1]},
-    resource: {packFormat: 84, minFormat: [84, 0], maxFormat: [84, 0]},
+    data: {packFormat: 107, minFormat: [107, 1], maxFormat: [107, 1]},
+    resource: {packFormat: 88, minFormat: [88, 0], maxFormat: [88, 0]},
+    enabled: true
+  },
+  {
+    id: '26.3',
+    label: 'Minecraft 26.3',
+    data: {packFormat: 121, minFormat: [121, 0], maxFormat: [121, 0]},
+    resource: {packFormat: 97, minFormat: [97, 1], maxFormat: [97, 1]},
     enabled: true
   }
 ];
@@ -2845,6 +4545,7 @@ function getPackFormats(id) {
 }
 
 module.exports = {
+  MIN_MOD_VERSION,
   getVersions,
   getDefaultVersionId,
   getPackFormats
@@ -2877,9 +4578,14 @@ module.exports = {
 
 const {
   MODEL_TYPE_ENTITY,
-  MODEL_TYPE_BLOCK_ENTITY
+  MODEL_TYPE_BLOCK_ENTITY,
+  isCustomEntity
 } = __webpack_require__(151);
-const {EXPORT_TYPE_DATA_PACK} = __webpack_require__(984);
+const {
+  EXPORT_TYPE_PACKS,
+  EXPORT_TYPE_DATA_PACK,
+  EXPORT_TYPE_MODEL_ONLY
+} = __webpack_require__(984);
 const {Validator} = __webpack_require__(229);
 const {t} = __webpack_require__(16);
 const {
@@ -2892,27 +4598,144 @@ const {
   gaitOptions,
   behaviorModeOptions,
   animationModeOptions,
+  variantModeOptions,
   versionOptions
 } = __webpack_require__(664);
 const {
   settingsToForm,
+  variantWeightKey,
   activeModelType,
   activePreset,
+  presetKey,
   presetFormValues,
   resolveExportSettings
 } = __webpack_require__(807);
 
-function advancedField(field, showCustomize) {
-  return Object.assign({condition: showCustomize}, field);
+function selectField(options) {
+  return {type: 'select', options: options};
+}
+
+function numberField(step, min, max) {
+  return Object.fromEntries(
+      Object.entries({type: 'number', step: step, min: min, max: max})
+      .filter(([, value]) => value !== undefined));
+}
+
+function advancedSections(limits, variantClips) {
+  return [
+    {
+      name: 'host', visibility: 'entity', fields: {
+        hostEntityType: selectField(hostEntityTypeOptions()),
+        movementType: selectField(movementTypeOptions()),
+        bodyType: selectField(bodyTypeOptions())
+      }
+    },
+    {
+      name: 'dimensions', visibility: 'server', fields: {
+        width: numberField(0.1, limits.minDimension, limits.maxDimension),
+        height: numberField(0.1, limits.minDimension, limits.maxDimension),
+        eyeHeight: numberField(0.1, 0, limits.maxDimension)
+      }
+    },
+    {
+      name: 'movement', visibility: 'entity', fields: {
+        speed: numberField(0.01, 0, limits.maxMovementSpeed),
+        stepHeight: numberField(0.1, 0, limits.maxStepHeight),
+        gravity: {type: 'checkbox'}
+      }
+    },
+    {
+      name: 'behavior', visibility: 'entity', fields: {
+        behaviorMode: selectField(behaviorModeOptions())
+      }
+    },
+    {
+      name: 'attributes', visibility: 'entity', fields: {
+        maxHealth: numberField(0.5, 0),
+        movementSpeed: numberField(0.01, 0),
+        followRange: numberField(1, 0)
+      }
+    },
+    {
+      name: 'rendering', visibility: 'render', fields: {
+        scale: numberField(0.1, limits.minDimension),
+        shadowRadius: numberField(0.1, 0),
+        visibleBoundsWidth: numberField(0.1, 0),
+        visibleBoundsHeight: numberField(0.1, 0),
+        visibleBoundsOffsetX: numberField(0.1),
+        visibleBoundsOffsetY: numberField(0.1),
+        visibleBoundsOffsetZ: numberField(0.1),
+        opacity: numberField(0.05, 0, 1)
+      }
+    },
+    {
+      name: 'animation', visibility: 'render', fields: {
+        animationMode: selectField(animationModeOptions()),
+        swingSpeed: numberField(0.1, 0),
+        walkSpeedMultiplier: numberField(0.1, 0),
+        idleStrength: numberField(0.1, 0),
+        gait: selectField(gaitOptions()),
+        variantMode: selectField(variantModeOptions())
+      }
+    },
+    {
+      name: 'variantWeights', visibility: 'render',
+      when: (form) => form.variantMode !== 'none',
+      fields: Object.fromEntries(variantClips.map((clipName, index) => [
+        variantWeightKey(index),
+        {label: t('eme.field.variantWeight', clipName), ...numberField(0.1, 0)}
+      ]))
+    },
+    {
+      name: 'shoulder', visibility: 'renderEntity', fields: {
+        shoulderOffsetX: numberField(0.1),
+        shoulderOffsetY: numberField(0.1),
+        shoulderOffsetZ: numberField(0.1),
+        shoulderScale: numberField(0.1, limits.minDimension)
+      }
+    }
+  ].filter((section) => Object.keys(section.fields).length > 0);
+}
+
+function issueSection(title, issues) {
+  if (!issues || issues.length === 0) {
+    return [];
+  }
+
+  const lines = issues.map((issue) => `- ${issue.message}`).join('\n');
+
+  return [`**${title}**\n\n${lines}`];
+}
+
+function issueFields(state) {
+  const issues = state.geometryIssues || {};
+  const sections = [
+    ...issueSection(t('eme.dialog.blockingIssues'), issues.errors),
+    ...issueSection(t('eme.dialog.warnings'), issues.warnings)
+  ];
+  const fields = {};
+  if (sections.length > 0) {
+    fields.geometry_issues = {type: 'info', text: sections.join('\n\n')};
+  }
+  if (state.onWrapInRootBone) {
+    fields.wrap_in_root_bone = {
+      type: 'buttons',
+      buttons: [t('eme.action.wrapInRootBone')],
+      click: () => state.onWrapInRootBone()
+    };
+  }
+
+  return fields;
 }
 
 function buildFormConfig(settings, ui) {
   const limits = Validator.LIMITS;
-  const values = settingsToForm(settings);
   const state = ui || {};
+  const variantClips = state.variantClips || [];
+  const values = settingsToForm(settings, variantClips);
   const allowCustomize = !!state.showCustomization;
 
-  const standalone = (form) => form.exportType !== 'model_only';
+  const standalone = (form) => form.exportType !== EXPORT_TYPE_MODEL_ONLY;
   const blockEntitySelected = (form) =>
       standalone(form) && form.modelType === MODEL_TYPE_BLOCK_ENTITY;
   const customizeOn = (form) => allowCustomize && !!form.customize;
@@ -2925,11 +4748,12 @@ function buildFormConfig(settings, ui) {
   const blockValue = state.blockPreset || 'static';
 
   const config = {
+    ...issueFields(state),
     exportType: {
       label: t('eme.field.exportType'),
       type: 'select',
       options: exportTypeOptions(),
-      value: state.exportType || 'packs'
+      value: state.exportType || EXPORT_TYPE_PACKS
     },
     modelType: {
       label: t('eme.field.modelType'),
@@ -2988,165 +4812,30 @@ function buildFormConfig(settings, ui) {
     };
   }
 
-  Object.assign(config, {
-    host_header: advancedField(
-        {type: 'info', text: `### ${t('eme.section.host')}`}, showEntity),
-    hostEntityType: advancedField({
-      label: t('eme.field.hostEntityType'),
-      type: 'select',
-      options: hostEntityTypeOptions(),
-      value: values.hostEntityType
-    }, showEntity),
-    movementType: advancedField({
-      label: t('eme.field.movementType'),
-      type: 'select',
-      options: movementTypeOptions(),
-      value: values.movementType
-    }, showEntity),
-    bodyType: advancedField({
-      label: t('eme.field.bodyType'),
-      type: 'select',
-      options: bodyTypeOptions(),
-      value: values.bodyType
-    }, showEntity),
-
-    dimensions_header: advancedField(
-        {type: 'info', text: `### ${t('eme.section.dimensions')}`},
-        showServer),
-    width: advancedField(
-        {
-          label: t('eme.field.width'), type: 'number', value: values.width,
-          step: 0.1, min: limits.minDimension, max: limits.maxDimension
-        }, showServer),
-    height: advancedField(
-        {
-          label: t('eme.field.height'), type: 'number', value: values.height,
-          step: 0.1, min: limits.minDimension, max: limits.maxDimension
-        }, showServer),
-    eyeHeight: advancedField(
-        {
-          label: t('eme.field.eyeHeight'), type: 'number',
-          value: values.eyeHeight, step: 0.1, min: 0,
-          max: limits.maxDimension
-        }, showServer),
-
-    movement_header: advancedField(
-        {type: 'info', text: `### ${t('eme.section.movement')}`}, showEntity),
-    speed: advancedField(
-        {
-          label: t('eme.field.speed'), type: 'number', value: values.speed,
-          step: 0.01, min: 0, max: limits.maxMovementSpeed
-        }, showEntity),
-    stepHeight: advancedField(
-        {
-          label: t('eme.field.stepHeight'), type: 'number',
-          value: values.stepHeight, step: 0.1, min: 0,
-          max: limits.maxStepHeight
-        }, showEntity),
-    gravity: advancedField(
-        {
-          label: t('eme.field.gravity'), type: 'checkbox',
-          value: values.gravity
-        }, showEntity),
-
-    behavior_header: advancedField(
-        {type: 'info', text: `### ${t('eme.section.behavior')}`}, showEntity),
-    behaviorMode: advancedField({
-      label: t('eme.field.behaviorMode'),
-      type: 'select',
-      options: behaviorModeOptions(),
-      value: values.behaviorMode
-    }, showEntity),
-
-    attributes_header: advancedField(
-        {type: 'info', text: `### ${t('eme.section.attributes')}`},
-        showEntity),
-    maxHealth: advancedField(
-        {
-          label: t('eme.field.maxHealth'), type: 'number',
-          value: values.maxHealth, step: 0.5, min: 0
-        }, showEntity),
-    movementSpeed: advancedField(
-        {
-          label: t('eme.field.movementSpeed'), type: 'number',
-          value: values.movementSpeed, step: 0.01, min: 0
-        }, showEntity),
-    followRange: advancedField(
-        {
-          label: t('eme.field.followRange'), type: 'number',
-          value: values.followRange, step: 1, min: 0
-        }, showEntity),
-
-    rendering_header: advancedField(
-        {type: 'info', text: `### ${t('eme.section.rendering')}`},
-        showRender),
-    scale: advancedField(
-        {
-          label: t('eme.field.scale'), type: 'number', value: values.scale,
-          step: 0.1, min: limits.minDimension
-        }, showRender),
-    shadowRadius: advancedField(
-        {
-          label: t('eme.field.shadowRadius'), type: 'number',
-          value: values.shadowRadius, step: 0.1, min: 0
-        }, showRender),
-    visibleBoundsWidth: advancedField(
-        {
-          label: t('eme.field.visibleBoundsWidth'), type: 'number',
-          value: values.visibleBoundsWidth, step: 0.1, min: 0
-        }, showRender),
-    visibleBoundsHeight: advancedField(
-        {
-          label: t('eme.field.visibleBoundsHeight'), type: 'number',
-          value: values.visibleBoundsHeight, step: 0.1, min: 0
-        }, showRender),
-    visibleBoundsOffsetX: advancedField(
-        {
-          label: t('eme.field.visibleBoundsOffsetX'), type: 'number',
-          value: values.visibleBoundsOffsetX, step: 0.1
-        }, showRender),
-    visibleBoundsOffsetY: advancedField(
-        {
-          label: t('eme.field.visibleBoundsOffsetY'), type: 'number',
-          value: values.visibleBoundsOffsetY, step: 0.1
-        }, showRender),
-    visibleBoundsOffsetZ: advancedField(
-        {
-          label: t('eme.field.visibleBoundsOffsetZ'), type: 'number',
-          value: values.visibleBoundsOffsetZ, step: 0.1
-        }, showRender),
-
-    animation_header: advancedField(
-        {type: 'info', text: `### ${t('eme.section.animation')}`},
-        showRender),
-    animationMode: advancedField({
-      label: t('eme.field.animationMode'),
-      type: 'select',
-      options: animationModeOptions(),
-      value: values.animationMode
-    }, showRender),
-    swingSpeed: advancedField(
-        {
-          label: t('eme.field.swingSpeed'), type: 'number',
-          value: values.swingSpeed, step: 0.1, min: 0
-        }, showRender),
-    walkSpeedMultiplier: advancedField(
-        {
-          label: t('eme.field.walkSpeedMultiplier'), type: 'number',
-          value: values.walkSpeedMultiplier, step: 0.1, min: 0
-        }, showRender),
-    idleStrength: advancedField(
-        {
-          label: t('eme.field.idleStrength'), type: 'number',
-          value: values.idleStrength, step: 0.1, min: 0
-        }, showRender),
-    gait: advancedField({
-      label: t('eme.field.gait'),
-      type: 'select',
-      options: gaitOptions(),
-      value: values.gait
-    }, showRender)
-  });
+  const visibility = {
+    entity: showEntity,
+    server: showServer,
+    render: showRender,
+    renderEntity: (form) => showRender(form) && !blockEntitySelected(form)
+  };
+  for (const section of advancedSections(limits, variantClips)) {
+    const sectionVisible = visibility[section.visibility];
+    const condition = section.when
+        ? (form) => sectionVisible(form) && section.when(form) : sectionVisible;
+    config[`${section.name}_header`] = {
+      type: 'info',
+      text: `### ${t(`eme.section.${section.name}`)}`,
+      condition: condition
+    };
+    for (const [key, field] of Object.entries(section.fields)) {
+      config[key] = {
+        label: t(`eme.field.${key}`),
+        ...field,
+        value: values[key],
+        condition: condition
+      };
+    }
+  }
 
   return config;
 }
@@ -3155,29 +4844,27 @@ function openExportDialog(options) {
   const settings = options.settings;
   const modelDimensions = options.modelDimensions;
   const visibleBounds = options.visibleBounds;
-  let lastKey = `${activeModelType(options)}|${activePreset(options)}`;
+  let lastKey = presetKey(options);
 
   const dialog = new Dialog({
     id: 'eme_export_dialog',
     title: t('eme.dialog.title'),
     width: 560,
     form: buildFormConfig(settings, {
-      preset: options.preset,
-      blockPreset: options.blockPreset,
-      modelType: options.modelType,
-      exportType: options.exportType,
-      customize: options.customize,
-      showCustomization: options.showCustomization,
-      experimental: options.experimental,
-      hasExternalTextures: options.hasExternalTextures
+      ...options,
+      onWrapInRootBone: options.onWrapInRootBone ? () => {
+        const form = dialog.getFormResult();
+        dialog.hide();
+        options.onWrapInRootBone(form);
+      } : undefined
     }),
     onFormChange(form) {
-      const modelType = activeModelType(form);
-      const preset = activePreset(form);
-      const key = `${modelType}|${preset}`;
+      const key = presetKey(form);
       if (key !== lastKey) {
         lastKey = key;
-        if (modelType !== MODEL_TYPE_ENTITY || preset !== 'custom') {
+        const modelType = activeModelType(form);
+        const preset = activePreset(form);
+        if (!isCustomEntity(modelType, preset)) {
           dialog.setFormValues(
               presetFormValues(preset, modelType, modelDimensions,
                   visibleBounds), false);
@@ -3186,16 +4873,21 @@ function openExportDialog(options) {
     },
     onConfirm(form) {
       const finalSettings = resolveExportSettings(form, settings,
-          modelDimensions, visibleBounds);
-      options.onExport(finalSettings, finalSettings.exportTarget);
+          modelDimensions, visibleBounds, options.variantClips);
+      options.onExport(finalSettings);
     }
   });
   dialog.show();
+  if (options.formValues) {
+    dialog.setFormValues(options.formValues, false);
+    lastKey = presetKey(options.formValues);
+  }
 
   return dialog;
 }
 
 module.exports = {
+  buildFormConfig,
   openExportDialog
 };
 
@@ -3233,8 +4925,10 @@ const {
   GAIT_TYPES,
   BEHAVIOR_MODES,
   ANIMATION_MODES,
+  ANIMATION_VARIANT_MODES,
+  HOST_ENTITY_TYPES,
+  MODEL_TYPES,
   isStablePreset,
-  MODEL_TYPE_ENTITY,
   MODEL_TYPE_BLOCK_ENTITY
 } = __webpack_require__(151);
 const {
@@ -3249,66 +4943,36 @@ const {t} = __webpack_require__(16);
 function optionsFromEnum(values, prefix) {
   const options = {};
   values.forEach((id) => {
-    options[id] = t(`${prefix}.${id}`);
+    options[id] = t(`${prefix}.${id.split(':').pop()}`);
   });
 
   return options;
-}
-
-function presetLabel(id) {
-  return id === 'custom' ? t('eme.preset.custom') : t(`eme.preset.${id}`);
-}
-
-function entityPresetIds(experimental) {
-  return experimental
-      ? ['custom', ...SELECTABLE_PRESET_TYPES]
-      : SELECTABLE_PRESET_TYPES.filter(isStablePreset);
-}
-
-function blockPresetIds(experimental) {
-  return experimental
-      ? [...BLOCK_ENTITY_PRESET_TYPES]
-      : BLOCK_ENTITY_PRESET_TYPES.filter(isStablePreset);
 }
 
 function presetOptions(modelType, experimental, ensure) {
-  const ids = modelType === MODEL_TYPE_BLOCK_ENTITY
-      ? blockPresetIds(experimental) : entityPresetIds(experimental);
+  const presetIds = modelType === MODEL_TYPE_BLOCK_ENTITY
+      ? BLOCK_ENTITY_PRESET_TYPES : ['custom', ...SELECTABLE_PRESET_TYPES];
+  const ids = presetIds.filter(
+      (presetId) => experimental || isStablePreset(presetId));
   if (ensure && !ids.includes(ensure)) {
     ids.push(ensure);
   }
-  const options = {};
-  ids.forEach((id) => {
-    options[id] = presetLabel(id);
-  });
 
-  return options;
+  return optionsFromEnum(ids, 'eme.preset');
 }
 
 function modelTypeOptions() {
-  return {
-    [MODEL_TYPE_ENTITY]: t('eme.modelType.entity'),
-    [MODEL_TYPE_BLOCK_ENTITY]: t('eme.modelType.block_entity')
-  };
+  return optionsFromEnum(MODEL_TYPES, 'eme.modelType');
 }
 
 function exportTypeOptions() {
-  return {
-    [EXPORT_TYPE_PACKS]: t('eme.exportType.packs'),
-    [EXPORT_TYPE_RESOURCE_PACK]: t('eme.exportType.resource_pack'),
-    [EXPORT_TYPE_DATA_PACK]: t('eme.exportType.data_pack'),
-    [EXPORT_TYPE_MOD_PROJECT]: t('eme.exportType.mod_project'),
-    [EXPORT_TYPE_MODEL_ONLY]: t('eme.exportType.model_only')
-  };
+  return optionsFromEnum([EXPORT_TYPE_PACKS, EXPORT_TYPE_RESOURCE_PACK,
+        EXPORT_TYPE_DATA_PACK, EXPORT_TYPE_MOD_PROJECT, EXPORT_TYPE_MODEL_ONLY],
+      'eme.exportType');
 }
 
 function hostEntityTypeOptions() {
-  return {
-    'easy_model_entities:ground_entity': t('eme.entity.ground_entity'),
-    'easy_model_entities:static_entity': t('eme.entity.static_entity'),
-    'easy_model_entities:aquatic_entity': t('eme.entity.aquatic_entity'),
-    'easy_model_entities:amphibious_entity': t('eme.entity.amphibious_entity')
-  };
+  return optionsFromEnum(HOST_ENTITY_TYPES, 'eme.entity');
 }
 
 function movementTypeOptions() {
@@ -3331,6 +4995,10 @@ function animationModeOptions() {
   return optionsFromEnum(ANIMATION_MODES, 'eme.animation');
 }
 
+function variantModeOptions() {
+  return optionsFromEnum(ANIMATION_VARIANT_MODES, 'eme.variant');
+}
+
 function versionOptions() {
   const options = {};
   getVersions().forEach((version) => {
@@ -3351,6 +5019,7 @@ module.exports = {
   gaitOptions,
   behaviorModeOptions,
   animationModeOptions,
+  variantModeOptions,
   versionOptions
 };
 
@@ -3382,104 +5051,113 @@ module.exports = {
 const {getDefaults, applyTemplate, deepMerge} = __webpack_require__(668);
 const {
   MODEL_TYPE_ENTITY,
-  MODEL_TYPE_BLOCK_ENTITY
+  MODEL_TYPE_BLOCK_ENTITY,
+  behaviorForMode,
+  isCustomEntity
 } = __webpack_require__(151);
 const {
   EXPORT_TYPE_PACKS,
-  EXPORT_TYPE_MODEL_ONLY,
-  EXPORT_TYPE_MOD_PROJECT,
-  isZipExport
+  EXPORT_TYPE_MODEL_ONLY
 } = __webpack_require__(984);
 const {ModelDimensions} = __webpack_require__(763);
 const {VisibleBounds} = __webpack_require__(508);
 
-function settingsToForm(settings) {
-  const offset = settings.rendering.visibleBoundsOffset || [0, 0, 0];
+const keepValue = (value) => value;
 
-  return {
-    namespace: settings.namespace,
-    profileId: settings.profileId,
-    targetVersion: settings.targetVersion,
-    hostEntityType: settings.host.entityType,
-    movementType: settings.host.movementType,
-    bodyType: settings.host.bodyType,
-    width: settings.dimensions.width,
-    height: settings.dimensions.height,
-    eyeHeight: settings.dimensions.eyeHeight,
-    speed: settings.movement.speed,
-    stepHeight: settings.movement.stepHeight,
-    gravity: settings.movement.gravity,
-    behaviorMode: settings.behavior.mode,
-    maxHealth: settings.attributes.maxHealth,
-    movementSpeed: settings.attributes.movementSpeed,
-    followRange: settings.attributes.followRange,
-    scale: settings.rendering.scale,
-    shadowRadius: settings.rendering.shadowRadius,
-    visibleBoundsWidth: settings.rendering.visibleBoundsWidth ?? 0,
-    visibleBoundsHeight: settings.rendering.visibleBoundsHeight ?? 0,
-    visibleBoundsOffsetX: offset[0],
-    visibleBoundsOffsetY: offset[1],
-    visibleBoundsOffsetZ: offset[2],
-    animationMode: settings.animation.mode,
-    swingSpeed: settings.animation.swingSpeed,
-    walkSpeedMultiplier: settings.animation.walkSpeedMultiplier,
-    idleStrength: settings.animation.idleStrength ?? 1,
-    gait: settings.animation.gait || 'natural'
-  };
+const FORM_FIELDS = [
+  ['hostEntityType', 'host.entityType', keepValue],
+  ['movementType', 'host.movementType', keepValue],
+  ['bodyType', 'host.bodyType', keepValue],
+  ['width', 'dimensions.width', Number],
+  ['height', 'dimensions.height', Number],
+  ['eyeHeight', 'dimensions.eyeHeight', Number],
+  ['speed', 'movement.speed', Number],
+  ['stepHeight', 'movement.stepHeight', Number],
+  ['gravity', 'movement.gravity', Boolean],
+  ['behaviorMode', 'behavior.mode', keepValue],
+  ['maxHealth', 'attributes.maxHealth', Number],
+  ['movementSpeed', 'attributes.movementSpeed', Number],
+  ['followRange', 'attributes.followRange', Number],
+  ['scale', 'rendering.scale', Number],
+  ['shadowRadius', 'rendering.shadowRadius', Number],
+  ['visibleBoundsWidth', 'rendering.visibleBoundsWidth', Number],
+  ['visibleBoundsHeight', 'rendering.visibleBoundsHeight', Number],
+  ['opacity', 'rendering.opacity', Number],
+  ['animationMode', 'animation.mode', keepValue],
+  ['swingSpeed', 'animation.swingSpeed', Number],
+  ['walkSpeedMultiplier', 'animation.walkSpeedMultiplier', Number],
+  ['idleStrength', 'animation.idleStrength', Number],
+  ['gait', 'animation.gait', keepValue],
+  ['variantMode', 'animation.variantMode', keepValue],
+  ['shoulderScale', 'shoulder.scale', Number]
+];
+
+const VECTOR_FIELDS = [
+  ['rendering.visibleBoundsOffset',
+    ['visibleBoundsOffsetX', 'visibleBoundsOffsetY', 'visibleBoundsOffsetZ']],
+  ['shoulder.offset',
+    ['shoulderOffsetX', 'shoulderOffsetY', 'shoulderOffsetZ']]
+];
+
+function variantWeightKey(index) {
+  return `variantWeight${index}`;
 }
 
-function formToSettings(form, base) {
-  return {
-    schemaVersion: base.schemaVersion,
+function settingsToForm(settings, variantClips) {
+  const form = {
+    namespace: settings.namespace,
+    profileId: settings.profileId,
+    targetVersion: settings.targetVersion
+  };
+  for (const [key, path] of FORM_FIELDS) {
+    const [section, field] = path.split('.');
+    form[key] = settings[section][field];
+  }
+  for (const [path, keys] of VECTOR_FIELDS) {
+    const [section, field] = path.split('.');
+    keys.forEach((key, axis) => {
+      form[key] = settings[section][field][axis];
+    });
+  }
+  (variantClips || []).forEach((clipName, index) => {
+    form[variantWeightKey(index)] =
+        settings.animation.variantWeights[clipName] ?? 1;
+  });
+
+  return form;
+}
+
+function formToSettings(form, base, variantClips) {
+  const settings = {
     modelType: base.modelType,
     presetType: base.presetType,
     namespace: String(form.namespace || '').trim(),
     profileId: String(form.profileId || '').trim(),
     targetVersion: base.targetVersion,
-    host: {
-      entityType: form.hostEntityType,
-      movementType: form.movementType,
-      bodyType: form.bodyType
-    },
-    dimensions: {
-      width: Number(form.width),
-      height: Number(form.height),
-      eyeHeight: Number(form.eyeHeight)
-    },
-    movement: {
-      speed: Number(form.speed),
-      stepHeight: Number(form.stepHeight),
-      gravity: !!form.gravity
-    },
-    behavior: {
-      mode: form.behaviorMode,
-      lookAtPlayers: base.behavior ? base.behavior.lookAtPlayers : true,
-      randomStroll: base.behavior ? base.behavior.randomStroll : false
-    },
-    attributes: {
-      maxHealth: Number(form.maxHealth),
-      movementSpeed: Number(form.movementSpeed),
-      followRange: Number(form.followRange)
-    },
-    rendering: {
-      scale: Number(form.scale),
-      shadowRadius: Number(form.shadowRadius),
-      visibleBoundsWidth: Number(form.visibleBoundsWidth),
-      visibleBoundsHeight: Number(form.visibleBoundsHeight),
-      visibleBoundsOffset: [
-        Number(form.visibleBoundsOffsetX),
-        Number(form.visibleBoundsOffsetY),
-        Number(form.visibleBoundsOffsetZ)
-      ]
-    },
-    animation: {
-      mode: form.animationMode,
-      swingSpeed: Number(form.swingSpeed),
-      walkSpeedMultiplier: Number(form.walkSpeedMultiplier),
-      idleStrength: Number(form.idleStrength),
-      gait: form.gait
-    }
+    host: {},
+    dimensions: {},
+    movement: {},
+    behavior: {},
+    attributes: {},
+    rendering: {},
+    animation: {},
+    shoulder: {}
   };
+  for (const [key, path, convert] of FORM_FIELDS) {
+    const [section, field] = path.split('.');
+    settings[section][field] = convert(form[key]);
+  }
+  for (const [path, keys] of VECTOR_FIELDS) {
+    const [section, field] = path.split('.');
+    settings[section][field] = keys.map((key) => Number(form[key]));
+  }
+  settings.behavior = behaviorForMode(settings.behavior.mode,
+      settings.host.movementType);
+  settings.animation.variantWeights = Object.fromEntries(
+      (variantClips || []).map((clipName, index) =>
+          [clipName, Number(form[variantWeightKey(index)])]));
+
+  return settings;
 }
 
 function activeModelType(form) {
@@ -3492,12 +5170,23 @@ function activePreset(form) {
       ? (form.blockPreset || 'static') : (form.preset || 'custom');
 }
 
-function presetFormValues(presetType, modelType, modelDimensions,
+function presetKey(form) {
+  return `${activeModelType(form)}|${activePreset(form)}`;
+}
+
+function presetSettings(presetType, modelType, modelDimensions,
     visibleBounds) {
   const settings = ModelDimensions.applyModelDimensions(
       applyTemplate(presetType, modelType), modelDimensions);
   VisibleBounds.applyVisibleBounds(settings, visibleBounds);
-  const form = settingsToForm(settings);
+
+  return settings;
+}
+
+function presetFormValues(presetType, modelType, modelDimensions,
+    visibleBounds) {
+  const form = settingsToForm(presetSettings(presetType, modelType,
+      modelDimensions, visibleBounds));
   delete form.namespace;
   delete form.profileId;
   delete form.targetVersion;
@@ -3505,21 +5194,15 @@ function presetFormValues(presetType, modelType, modelDimensions,
   return form;
 }
 
-function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
-  const exportType = form.exportType || EXPORT_TYPE_PACKS;
+function resolveExportSettings(form, base, modelDimensions, visibleBounds,
+    variantClips) {
   const modelType = activeModelType(form);
   const preset = activePreset(form);
 
-  let settings;
-  if (modelType !== MODEL_TYPE_BLOCK_ENTITY && preset === 'custom') {
-    settings = deepMerge(getDefaults(), base);
-  } else {
-    settings = ModelDimensions.applyModelDimensions(
-        applyTemplate(preset, modelType), modelDimensions);
-    VisibleBounds.applyVisibleBounds(settings, visibleBounds);
-  }
+  let settings = isCustomEntity(modelType, preset)
+      ? deepMerge(getDefaults(), base)
+      : presetSettings(preset, modelType, modelDimensions, visibleBounds);
 
-  settings.schemaVersion = base.schemaVersion || settings.schemaVersion;
   settings.modelType = modelType;
   settings.presetType = preset;
   settings.namespace = String(form.namespace || '').trim();
@@ -3527,24 +5210,24 @@ function resolveExportSettings(form, base, modelDimensions, visibleBounds) {
   settings.targetVersion = form.targetVersion;
 
   if (form.customize) {
-    settings = formToSettings(form, settings);
+    settings = formToSettings(form, settings, variantClips);
   }
   settings.customize = !!form.customize;
   settings.includeExternalTextures = form.includeExternalTextures !== false;
   settings.lastExportedVersion = base.lastExportedVersion;
-  settings.exportType = exportType;
-  settings.exportTarget = isZipExport(exportType)
-      ? EXPORT_TYPE_PACKS : EXPORT_TYPE_MOD_PROJECT;
-  settings.modelOnly = exportType === EXPORT_TYPE_MODEL_ONLY;
+  settings.lastExportedTargetVersion = base.lastExportedTargetVersion;
+  settings.exportType = form.exportType || EXPORT_TYPE_PACKS;
 
   return settings;
 }
 
 module.exports = {
+  variantWeightKey,
   settingsToForm,
   formToSettings,
   activeModelType,
   activePreset,
+  presetKey,
   presetFormValues,
   resolveExportSettings
 };
@@ -3755,7 +5438,9 @@ module.exports = {ResourceLocation};
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const {normalizeName} = __webpack_require__(151);
 const {ResourceLocation} = __webpack_require__(20);
+const {t} = __webpack_require__(16);
 
 const ASSETS_PATTERN = /assets\/([a-z0-9_.-]+)\/textures\/(.+?)(?:\.png)?$/i;
 
@@ -3779,7 +5464,7 @@ function customLocation(settings, index) {
 }
 
 function parseExternalLocation(descriptor) {
-  const namespace = String(descriptor.namespace || '').trim().toLowerCase();
+  const namespace = normalizeName(descriptor.namespace);
   if (namespace) {
     const folder = trimSlashes(String(descriptor.folder || '').trim());
     const name = stripPng(String(descriptor.name || '').trim()).toLowerCase();
@@ -3806,11 +5491,15 @@ function packPath(location) {
   return `assets/${namespace}/${resourcePath}`;
 }
 
+function exportLocation(externalLocation, settings) {
+  return `${settings.namespace}:${externalLocation.split(':')[1]}`;
+}
+
 function describeTextureSource(descriptor) {
   const location = parseExternalLocation(descriptor);
   return location
       ? {label: location.replace(':textures/', ':').replace(/\.png$/i, '')}
-      : {label: 'Custom Texture'};
+      : {label: t('eme.texture.custom')};
 }
 
 function resolveTextures(descriptors, settings) {
@@ -3820,15 +5509,19 @@ function resolveTextures(descriptors, settings) {
   const referencedOnly = [];
   const resolvedIndices = new Set();
   const includeExternal = settings.includeExternalTextures !== false;
+  const slotIndex = (descriptor, position) =>
+      Number.isInteger(descriptor.index) ? descriptor.index : position;
+  const reservedPaths = new Set((descriptors || []).map(
+      (descriptor, position) => packPath(
+          customLocation(settings, slotIndex(descriptor, position)))));
   let texture = null;
 
   (descriptors || []).forEach((descriptor, position) => {
-    const index = Number.isInteger(descriptor.index) ? descriptor.index
-        : position;
+    const index = slotIndex(descriptor, position);
     if (resolvedIndices.has(index)) {
       issues.push({
         code: 'DUPLICATE_TEXTURE_INDEX',
-        message: `Texture slot ${index} is assigned more than once`
+        message: t('eme.validation.DUPLICATE_TEXTURE_INDEX', index)
       });
       return;
     }
@@ -3838,15 +5531,23 @@ function resolveTextures(descriptors, settings) {
         && !ResourceLocation.isValidResourceLocation(externalLocation)) {
       issues.push({
         code: 'INVALID_TEXTURE_LOCATION',
-        message: `Texture slot ${index} points to the invalid location `
-            + `${externalLocation}, check its namespace and folder`
+        message: t('eme.validation.INVALID_TEXTURE_LOCATION', index,
+            externalLocation)
       });
       return;
     }
 
     resolvedIndices.add(index);
-    const location = externalLocation || customLocation(settings, index);
-    const vanilla = location.startsWith('minecraft:');
+    const vanilla = Boolean(externalLocation)
+        && externalLocation.startsWith('minecraft:');
+    let location = externalLocation || customLocation(settings, index);
+    if (externalLocation && includeExternal && !vanilla) {
+      location = exportLocation(externalLocation, settings);
+      if (reservedPaths.has(packPath(location))) {
+        location = customLocation(settings, index);
+      }
+      reservedPaths.add(packPath(location));
+    }
     if (!externalLocation || (includeExternal && !vanilla)) {
       packed.push({path: packPath(location), bytes: descriptor.bytes});
     } else if (!vanilla) {
@@ -3863,7 +5564,7 @@ function resolveTextures(descriptors, settings) {
   if (!texture && resolvedIndices.size > 0) {
     issues.push({
       code: 'MISSING_TEXTURE_INDEX',
-      message: 'Texture slot 0 is missing, the model has no primary texture'
+      message: t('eme.validation.MISSING_TEXTURE_INDEX')
     });
   }
 
@@ -3937,7 +5638,7 @@ module.exports = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><!
 (module) {
 
 "use strict";
-module.exports = "# {{id}} - Easy Model Entities pack\n\nA custom Blockbench model that appears in Minecraft as an entity you can spawn — no coding and no\nextra mod needed for this model. Made with the **Easy Model Entities Exporter** Blockbench plugin\nfor **{{mcVersion}}**.\n\n> **Note:** This is an early release. The pack format may still change, so you might need to\n> re-export this pack after updating the plugin or the mod.\n\nProfile ID: `{{serverProfileId}}`\n\n## What you need\n\nThe **Easy Model Entities** mod for **{{mcVersion}}** (Forge, NeoForge or Fabric, depending on the\nMinecraft version). Without the mod these files do nothing at all.\n\n- [CurseForge](https://www.curseforge.com/minecraft/mc-mods/easy-model-entities)\n- [Modrinth](https://modrinth.com/mod/easy-model-entities)\n\nInstall it like any other mod first. In multiplayer it has to be installed on the server too.\n\n## Installation\n\nTwo files belong together — do not unpack them, just move them into the right folder:\n\n- `{{datapackFile}}` — the entity itself (size, movement, behavior)\n- `{{resourcepackFile}}` — how it looks (model, texture, animations)\n\n### 1. Resource Pack\n\nMove `{{resourcepackFile}}` into your resourcepacks folder:\n\n- Windows: `%appdata%\\.minecraft\\resourcepacks\\`\n- Linux: `~/.minecraft/resourcepacks/`\n- macOS: `~/Library/Application Support/minecraft/resourcepacks/`\n\nStart Minecraft and enable it under **Options > Resource Packs**.\n\n### 2. Data Pack\n\nMove `{{datapackFile}}` into your world's datapacks folder:\n\n- Single player: `.minecraft/saves/<world>/datapacks/`\n- Dedicated server: `<server folder>/world/datapacks/`\n\nLoad the world, or run `/reload` if it is already open.\n\n> **Install both.** With only the resource pack the model shows up but cannot be spawned. With only\n> the data pack the entity exists but renders as a pink placeholder box.\n\n## Using it in game\n\nLook for the spawn item in the creative inventory: entities are in the **Easy Model Entities** tab,\nblock entities in **Easy Model Block Entities**. Place it like a spawn egg.\n\n## What this model can do\n\nMovement and behavior come from a fixed set of presets built into the mod — wandering, swimming,\nflying, standing still and so on. The preset was chosen at export time.\n\nAnimations are played from the clips in the Blockbench project. These names play automatically:\n\n| Clip     | When it plays        |\n|----------|----------------------|\n| `idle`   | standing still       |\n| `walk`   | moving on the ground |\n| `swim`   | moving in water      |\n| `fly`    | flying               |\n| `attack` | attacking            |\n| `sit`    | sitting              |\n\nClips named `hurt` and `death` are loaded as well, but the mod does not trigger them on its own.\nClips with any other name are kept as custom clips and are played by name, for example with\n`/easy_model_entities animation play entity <targets> <clip>`.\n\nThere is no scripting or custom AI. A model without any matching clip simply renders without\nanimation.\n\n## Updating this pack\n\nChanged only the model, texture or animations? Re-export just the resource pack and replace that\nfile. Changed entity data such as size or movement? Re-export just the data pack. Either way the\nupdated pack still matches the one you already installed. If both changed, export the complete\nbundle again and replace both files.\n";
+module.exports = "# {{id}} - Easy Model Entities pack\n\nA Blockbench model you can spawn as an entity in Minecraft. Made with the **Easy Model Entities**\nBlockbench plugin for **{{mcVersion}}**.\n\n> **Note:** This is an early release. If you update the plugin or the mod, you may need to export\n> this pack again.\n\nProfile ID: `{{serverProfileId}}`\n\n## What you need\n\nThe **Easy Model Entities** mod, version **{{modVersion}} or newer**, for **{{mcVersion}}**\n(Forge, NeoForge or Fabric). Without the mod these files do nothing. With an older mod version the\nmodel can look wrong or show up as a pink box.\n\n- [CurseForge](https://www.curseforge.com/minecraft/mc-mods/easy-model-entities)\n- [Modrinth](https://modrinth.com/mod/easy-model-entities)\n\nInstall it like any other mod. In multiplayer, the server needs it too.\n\n## Installation\n\nThere are two files. Do not unpack them, just move them into the right folder:\n\n- `{{datapackFile}}`: the entity itself (size, movement, behavior)\n- `{{resourcepackFile}}`: how it looks (model, texture, animations)\n\n### 1. Resource Pack\n\nMove `{{resourcepackFile}}` into your resourcepacks folder:\n\n- Windows: `%appdata%\\.minecraft\\resourcepacks\\`\n- Linux: `~/.minecraft/resourcepacks/`\n- macOS: `~/Library/Application Support/minecraft/resourcepacks/`\n\nStart Minecraft and turn it on under **Options > Resource Packs**.\n\n### 2. Data Pack\n\nMove `{{datapackFile}}` into the datapacks folder of your world:\n\n- Single player: `.minecraft/saves/<world>/datapacks/`\n- Server: `<server folder>/world/datapacks/`\n\nLoad the world. If it is already open, run `/reload`.\n\n> **Install both.** With only the resource pack, you cannot spawn the model. With only the data\n> pack, the entity shows up as a pink box.\n\n## Using it in game\n\nOpen the creative inventory. Entities are in the **Easy Model Entities** tab, block entities in\n**Easy Model Block Entities**. Use the spawn item like a spawn egg.\n\n## Using it with Easy NPC\n\nEasy NPC only needs the resource pack. You need the data pack only for the spawn items, for\n`/summon` and for the entities and blocks of Easy Model Entities.\n\n## What this model can do\n\nMovement and behavior come from a preset built into the mod, for example wandering, swimming,\nflying or standing still. The preset was chosen when the pack was exported.\n\nAnimations come from the clips in the Blockbench project. These names play on their own:\n\n| Clip     | When it plays        |\n|----------|----------------------|\n| `idle`   | standing still       |\n| `walk`   | moving on the ground |\n| `swim`   | moving in water      |\n| `fly`    | flying               |\n| `attack` | attacking            |\n| `sit`    | sitting or riding    |\n| `hurt`   | taking damage        |\n| `death`  | dying                |\n\n- `shoulder` plays while the model sits on a player's shoulder. Without it, `sit` or `idle` is used.\n- Numbered clips like `idle_2` or `walk 3` are variants. The mod picks one of them each time.\n- Clips with other names only play by command, for example\n  `/easy_model_entities animation play entity <targets> <clip>`.\n- A model without any of these clips is shown without animation.\n\n## Updating this pack\n\nChanged only the model, texture or animations? Export only the resource pack again and replace that\nfile. Changed size or movement? Export only the data pack. The new pack still fits the one you\ninstalled. If you changed both, export both packs again and replace both files.\n\n## Troubleshooting\n\nThe model is a pink box or does not show up? Run this command in game:\n\n```\n/easy_model_entities debug_profile {{serverProfileId}}\n```\n\nIt shows what is wrong with the profile and the model. Errors are also written to\n`logs/latest.log` in your Minecraft folder. Search the file for `{{serverProfileId}}`.\n";
 
 /***/ },
 
@@ -4004,14 +5705,15 @@ module.exports = require("path");
  */
 
 const {
-  getDefaults,
-  deepMerge,
+  expandModelSettings,
   applyTemplate,
-  DEFAULT_PRESET
+  DEFAULT_PRESET,
+  DEFAULT_PROFILE_ID
 } = __webpack_require__(668);
 const {
   MODEL_TYPE_ENTITY,
-  MODEL_TYPE_BLOCK_ENTITY
+  MODEL_TYPE_BLOCK_ENTITY,
+  variantClipNames
 } = __webpack_require__(151);
 const {ModelDimensions} = __webpack_require__(763);
 const {VisibleBounds} = __webpack_require__(508);
@@ -4034,20 +5736,26 @@ const {FORMAT_ID, registerEmeFormat, unregisterEmeFormat} = __webpack_require__(
     995);
 const {registerEmeCodecHooks, unregisterEmeCodecHooks} = __webpack_require__(
     670);
+const {
+  registerAnimationInheritance,
+  unregisterAnimationInheritance
+} = __webpack_require__(982);
 
 const MODDED_ENTITY_FORMAT_ID = 'modded_entity';
+const EXPORT_FORMAT_IDS = [FORMAT_ID, MODDED_ENTITY_FORMAT_ID];
+const STATIC_PRESET = 'statue';
 const ACTION_ID = 'eme_export';
-const SETTING_ID = 'eme_enable_customization';
-const EXPERIMENTAL_SETTING_ID = 'eme_enable_experimental';
+const VALIDATOR_CHECK_ID = 'eme_model_load';
+const SETTING_NAMES = ['enable_customization', 'enable_experimental'];
 const EXPORT_ICON = 'data:image/svg+xml,' + encodeURIComponent(exportIconSvg);
 const CREATE_ICON = 'data:image/svg+xml,' + encodeURIComponent(createIconSvg);
 let exportAction;
+let modelLoadCheck;
 let projectProperty;
-let customizationSetting;
-let experimentalSetting;
+const pluginSettings = new Map();
 
-function settingEnabled(setting) {
-  return !!setting && typeof setting.value === 'boolean' && setting.value;
+function settingEnabled(name) {
+  return pluginSettings.get(name)?.value === true;
 }
 
 function resolveDialogState() {
@@ -4064,7 +5772,7 @@ function resolveDialogState() {
   let exportType;
 
   if (storedSettings) {
-    settings = deepMerge(getDefaults(), storedSettings);
+    settings = expandModelSettings(storedSettings);
     modelType = settings.modelType || MODEL_TYPE_ENTITY;
     customize = !!storedSettings.customize;
     exportType = storedSettings.exportType || EXPORT_TYPE_PACKS;
@@ -4092,8 +5800,7 @@ function resolveDialogState() {
 
   const projectName = BlockbenchAdapter.getProjectName();
   if (projectName
-      && (!settings.profileId || settings.profileId
-          === getDefaults().profileId)) {
+      && (!settings.profileId || settings.profileId === DEFAULT_PROFILE_ID)) {
     settings.profileId = ResourceLocation.sanitizeProfileId(projectName);
   }
 
@@ -4104,12 +5811,14 @@ function resolveDialogState() {
   return {
     settings, preset, blockPreset, modelType, customize, exportType,
     visibleBounds, modelDimensions,
-    hasExternalTextures: (stats.externalTextures || []).length > 0
+    variantClips: variantClipNames(stats.animations),
+    hasExternalTextures: (stats.externalTextures || []).length > 0,
+    geometry: stats.geometry
   };
 }
 
 function formatIssues(issues) {
-  return issues.map((issue) => `• ${issue.message}`).join('\n');
+  return issues.map((issue) => `- ${issue.message}`).join('\n');
 }
 
 function pairingWarnings(settings) {
@@ -4120,72 +5829,97 @@ function pairingWarnings(settings) {
 
   return [{
     code: 'NO_PAIRED_EXPORT',
-    message: 'This project has no earlier export to pair with, so the single '
-        + 'pack may not match the installed one. Export both packs instead'
+    message: t('eme.validation.NO_PAIRED_EXPORT')
   }];
 }
 
-function runExport(settings, target) {
+function targetVersionWarnings(settings) {
+  if (!settings.lastExportedTargetVersion
+      || settings.lastExportedTargetVersion === settings.targetVersion) {
+    return [];
+  }
+
+  return [{
+    code: 'TARGET_VERSION_CHANGED',
+    message: t('eme.validation.TARGET_VERSION_CHANGED',
+        settings.lastExportedTargetVersion, settings.targetVersion)
+  }];
+}
+
+function runExport(settings) {
+  BlockbenchAdapter.saveSettings(settings);
   const textureResolution = resolveTextures(
       BlockbenchAdapter.collectTextures(), settings);
   const result = Validator.validateSettings(settings, {
     ...BlockbenchAdapter.getModelStats(),
+    modelFileSize: BlockbenchAdapter.getModelFileSize(),
     textureIssues: textureResolution.issues,
     referencedTextures: textureResolution.referencedOnly
   });
-  const warnings = [...result.warnings, ...pairingWarnings(settings)];
+  const warnings = [...result.warnings, ...pairingWarnings(settings),
+    ...targetVersionWarnings(settings)];
 
   if (!result.valid) {
     Blockbench.showMessageBox({
       title: t('eme.dialog.title'),
-      message: 'Export blocked. Please fix the following issues:\n\n'
-          + formatIssues(result.errors)
+      message: `${t('eme.message.exportBlocked')}\n\n${formatIssues(
+          result.errors)}`
     });
     return;
   }
 
-  const doExport = () => performExport(settings, target, textureResolution);
+  const doExport = () => performExport(settings, textureResolution);
 
   if (warnings.length > 0) {
-    Blockbench.showMessageBox(
-        {
-          title: t('eme.dialog.title'),
-          message: 'The following warnings were found:\n\n' + formatIssues(
-              warnings) + '\n\nExport anyway?',
-          buttons: ['Export', 'Cancel'],
-          confirm: 0,
-          cancel: 1
-        },
-        (button) => {
-          if (button === 0) {
-            doExport();
-          }
-        }
-    );
+    BlockbenchAdapter.confirm(t('eme.dialog.title'),
+        `${t('eme.message.exportWarnings')}\n\n${formatIssues(
+            warnings)}\n\n${t('eme.message.exportAnyway')}`,
+        t('eme.button.export'), doExport);
   } else {
     doExport();
   }
 }
 
-function openDialog() {
+function modelLoadErrors() {
+  const stats = BlockbenchAdapter.getModelLoadStats();
+  if (!stats.hasModel) {
+    return [];
+  }
+
+  const storedSettings = BlockbenchAdapter.loadSettings();
+  // Until a preset was exported, the body type is unknown; a static one skips
+  // the body part check instead of reporting parts of a guessed preset.
+  const settings = storedSettings ? expandModelSettings(storedSettings)
+      : applyTemplate(STATIC_PRESET);
+  const textureResolution = resolveTextures(
+      BlockbenchAdapter.collectTextureLocations(), settings);
+
+  return Validator.validateModelLoad(settings,
+      {...stats, textureIssues: textureResolution.issues});
+}
+
+function wrapInRootBoneAndReopen(formValues) {
+  BlockbenchAdapter.wrapInRootBone(t('eme.action.wrapInRootBone'));
+  openDialog(formValues);
+}
+
+function openDialog(formValues) {
   if (!Project) {
-    Blockbench.showQuickMessage('Open a project first', 1500);
+    Blockbench.showQuickMessage(t('eme.message.openProjectFirst'), 1500);
     return;
   }
 
   const state = resolveDialogState();
+  const geometryIssues = Validator.validateGeometry(state.geometry);
+  const canWrapInRootBone = geometryIssues.errors.some(
+      (issue) => issue.code === 'CUBE_OUTSIDE_GROUP');
   openExportDialog({
-    settings: state.settings,
-    preset: state.preset,
-    blockPreset: state.blockPreset,
-    modelType: state.modelType,
-    customize: state.customize,
-    exportType: state.exportType,
-    showCustomization: settingEnabled(customizationSetting),
-    experimental: settingEnabled(experimentalSetting),
-    modelDimensions: state.modelDimensions,
-    visibleBounds: state.visibleBounds,
-    hasExternalTextures: state.hasExternalTextures,
+    ...state,
+    showCustomization: settingEnabled('enable_customization'),
+    experimental: settingEnabled('enable_experimental'),
+    geometryIssues,
+    formValues,
+    onWrapInRootBone: canWrapInRootBone ? wrapInRootBoneAndReopen : undefined,
     onExport: runExport
   });
 }
@@ -4196,8 +5930,8 @@ BBPlugin.register('easy_model_entities', {
   author: 'Markus Bordihn',
   description: 'Export Blockbench models for the Easy Model Entities mod (Minecraft: Java Edition) as ready-to-install Data Pack and Resource Pack files.',
   tags: ['Minecraft: Java Edition', 'Format', 'Entity'],
-  version: '1.0.0',
-  min_version: '4.9.0',
+  version: '1.1.0',
+  min_version: '5.0.0',
   variant: 'desktop',
   await_loading: true,
   has_changelog: true,
@@ -4216,29 +5950,26 @@ BBPlugin.register('easy_model_entities', {
         BlockbenchAdapter.PROJECT_PROPERTY, {
           label: 'Easy Model Entities Settings',
           exposed: false,
+          export: false,
           default: undefined
         });
 
-    customizationSetting = new Setting(SETTING_ID, {
-      name: t('eme.setting.enable_customization'),
-      category: 'export',
-      type: 'toggle',
-      value: false
-    });
-
-    experimentalSetting = new Setting(EXPERIMENTAL_SETTING_ID, {
-      name: t('eme.setting.enable_experimental'),
-      category: 'export',
-      type: 'toggle',
-      value: false
-    });
+    for (const name of SETTING_NAMES) {
+      pluginSettings.set(name, new Setting(`eme_${name}`, {
+        name: t(`eme.setting.${name}`),
+        description: t(`eme.setting.${name}.description`),
+        category: 'export',
+        type: 'toggle',
+        value: false
+      }));
+    }
 
     exportAction = new Action(ACTION_ID, {
       name: t('eme.action.export'),
       description: t('eme.action.exportDescription'),
       icon: EXPORT_ICON,
       condition: () => typeof Format !== 'undefined' && Format
-          && (Format.id === FORMAT_ID || Format.id === MODDED_ENTITY_FORMAT_ID),
+          && EXPORT_FORMAT_IDS.includes(Format.id),
       click() {
         openDialog();
       }
@@ -4246,21 +5977,26 @@ BBPlugin.register('easy_model_entities', {
 
     MenuBar.addAction(exportAction, 'file.export');
 
+    modelLoadCheck = BlockbenchAdapter.registerValidatorCheck(
+        VALIDATOR_CHECK_ID, t('eme.validator.modelLoad'), EXPORT_FORMAT_IDS,
+        modelLoadErrors);
+
     patchTexturePanel(FORMAT_ID);
+    registerAnimationInheritance();
   },
   onunload() {
+    unregisterAnimationInheritance();
     unpatchTexturePanel();
     unregisterEmeCodecHooks();
     unregisterEmeFormat();
     if (exportAction) {
       exportAction.delete();
     }
-    if (customizationSetting) {
-      customizationSetting.delete();
+    if (modelLoadCheck) {
+      modelLoadCheck.delete();
     }
-    if (experimentalSetting) {
-      experimentalSetting.delete();
-    }
+    pluginSettings.forEach((setting) => setting.delete());
+    pluginSettings.clear();
     if (projectProperty) {
       projectProperty.delete();
     }

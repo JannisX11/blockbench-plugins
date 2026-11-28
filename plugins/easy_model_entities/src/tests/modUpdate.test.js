@@ -18,7 +18,7 @@
  */
 
 const {presetDefaults} = require('../model/presetTypes');
-const {applyTemplate, pickModelSettings} = require('../model/templates');
+const {applyTemplate} = require('../model/templates');
 const {buildRenderProfile} = require('../builders/renderProfile');
 const {VisibleBounds} = require('../model/VisibleBounds');
 
@@ -53,34 +53,6 @@ describe('amphibious / aquatic mapping mirrors the mod', () => {
   });
 });
 
-describe('pickModelSettings keeps reopen-critical settings', () => {
-  test('keeps customize / targetVersion and drops export-only keys', () => {
-    const full = {
-      ...applyTemplate('humanoid_wandering'),
-      targetVersion: '1.21.11',
-      customize: true,
-      exportType: 'packs',
-      exportTarget: 'packs',
-      modelOnly: false,
-      experimental: true,
-      lastExportedVersion: 'abc123'
-    };
-    const picked = pickModelSettings(full);
-    expect(picked.targetVersion).toBe('1.21.11');
-    expect(picked.customize).toBe(true);
-    expect(picked.lastExportedVersion).toBe('abc123');
-    expect(picked.exportType).toBeUndefined();
-    expect(picked.exportTarget).toBeUndefined();
-    expect(picked.modelOnly).toBeUndefined();
-    expect(picked.experimental).toBeUndefined();
-    expect(picked.schemaVersion).toBe('0.2.0');
-    expect(picked.presetType).toBe('humanoid_wandering');
-    expect(picked.host).toEqual(full.host);
-    expect(picked.rendering).toEqual(full.rendering);
-    expect(picked.animation).toEqual(full.animation);
-  });
-});
-
 describe('render profile emits the new optional fields when non-default',
     () => {
       test('gait, idle_strength and visible_bounds are written', () => {
@@ -101,7 +73,6 @@ describe('render profile emits the new optional fields when non-default',
       test('defaults (natural gait, idle 1, zero bounds) stay omitted', () => {
         const render = buildRenderProfile(applyTemplate('humanoid_wandering'),
             null);
-        // Every value matches the preset defaults, so neither section is written.
         expect(render.rendering).toBeUndefined();
         expect(render.animation).toBeUndefined();
       });

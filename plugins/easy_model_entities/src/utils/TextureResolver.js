@@ -17,7 +17,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+const {normalizeName} = require('../model/presetTypes');
 const {ResourceLocation} = require('./ResourceLocation');
+const {t} = require('../i18n/translations');
 
 const ASSETS_PATTERN = /assets\/([a-z0-9_.-]+)\/textures\/(.+?)(?:\.png)?$/i;
 
@@ -41,7 +43,7 @@ function customLocation(settings, index) {
 }
 
 function parseExternalLocation(descriptor) {
-  const namespace = String(descriptor.namespace || '').trim().toLowerCase();
+  const namespace = normalizeName(descriptor.namespace);
   if (namespace) {
     const folder = trimSlashes(String(descriptor.folder || '').trim());
     const name = stripPng(String(descriptor.name || '').trim()).toLowerCase();
@@ -68,11 +70,15 @@ function packPath(location) {
   return `assets/${namespace}/${resourcePath}`;
 }
 
+function exportLocation(externalLocation, settings) {
+  return `${settings.namespace}:${externalLocation.split(':')[1]}`;
+}
+
 function describeTextureSource(descriptor) {
   const location = parseExternalLocation(descriptor);
   return location
       ? {label: location.replace(':textures/', ':').replace(/\.png$/i, '')}
-      : {label: 'Custom Texture'};
+      : {label: t('eme.texture.custom')};
 }
 
 function resolveTextures(descriptors, settings) {
@@ -82,15 +88,19 @@ function resolveTextures(descriptors, settings) {
   const referencedOnly = [];
   const resolvedIndices = new Set();
   const includeExternal = settings.includeExternalTextures !== false;
+  const slotIndex = (descriptor, position) =>
+      Number.isInteger(descriptor.index) ? descriptor.index : position;
+  const reservedPaths = new Set((descriptors || []).map(
+      (descriptor, position) => packPath(
+          customLocation(settings, slotIndex(descriptor, position)))));
   let texture = null;
 
   (descriptors || []).forEach((descriptor, position) => {
-    const index = Number.isInteger(descriptor.index) ? descriptor.index
-        : position;
+    const index = slotIndex(descriptor, position);
     if (resolvedIndices.has(index)) {
       issues.push({
         code: 'DUPLICATE_TEXTURE_INDEX',
-        message: `Texture slot ${index} is assigned more than once`
+        message: t('eme.validation.DUPLICATE_TEXTURE_INDEX', index)
       });
       return;
     }
@@ -100,15 +110,23 @@ function resolveTextures(descriptors, settings) {
         && !ResourceLocation.isValidResourceLocation(externalLocation)) {
       issues.push({
         code: 'INVALID_TEXTURE_LOCATION',
-        message: `Texture slot ${index} points to the invalid location `
-            + `${externalLocation}, check its namespace and folder`
+        message: t('eme.validation.INVALID_TEXTURE_LOCATION', index,
+            externalLocation)
       });
       return;
     }
 
     resolvedIndices.add(index);
-    const location = externalLocation || customLocation(settings, index);
-    const vanilla = location.startsWith('minecraft:');
+    const vanilla = Boolean(externalLocation)
+        && externalLocation.startsWith('minecraft:');
+    let location = externalLocation || customLocation(settings, index);
+    if (externalLocation && includeExternal && !vanilla) {
+      location = exportLocation(externalLocation, settings);
+      if (reservedPaths.has(packPath(location))) {
+        location = customLocation(settings, index);
+      }
+      reservedPaths.add(packPath(location));
+    }
     if (!externalLocation || (includeExternal && !vanilla)) {
       packed.push({path: packPath(location), bytes: descriptor.bytes});
     } else if (!vanilla) {
@@ -125,7 +143,7 @@ function resolveTextures(descriptors, settings) {
   if (!texture && resolvedIndices.size > 0) {
     issues.push({
       code: 'MISSING_TEXTURE_INDEX',
-      message: 'Texture slot 0 is missing, the model has no primary texture'
+      message: t('eme.validation.MISSING_TEXTURE_INDEX')
     });
   }
 

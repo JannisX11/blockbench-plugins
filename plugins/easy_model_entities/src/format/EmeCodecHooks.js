@@ -18,36 +18,29 @@
  */
 
 const {BlockbenchAdapter} = require('../BlockbenchAdapter');
-const {pickModelSettings} = require('../model/templates');
-const {FORMAT_ID} = require('./EmeFormat');
+const {
+  compactModelSettings,
+  expandModelSettings
+} = require('../model/templates');
 
 const EME_SETTINGS_KEY = 'emeSettings';
 
 function handleCompile(event) {
-  if (Format?.id !== FORMAT_ID) {
-    return;
-  }
-
   const settings = BlockbenchAdapter.loadSettings();
   if (!settings) {
     return;
   }
 
-  const picked = pickModelSettings(settings);
-  if (Object.keys(picked).length > 0) {
-    event.model[EME_SETTINGS_KEY] = picked;
+  const compactSettings = compactModelSettings(settings);
+  if (Object.keys(compactSettings).length > 0) {
+    event.model[EME_SETTINGS_KEY] = compactSettings;
   }
 }
 
 function handleParse(event) {
-  const formatId = event.model?.meta?.model_format || event.model?.model_format;
-  if (formatId !== FORMAT_ID) {
-    return;
-  }
-
-  const settings = event.model[EME_SETTINGS_KEY];
+  const settings = event.model?.[EME_SETTINGS_KEY];
   if (settings && typeof settings === 'object') {
-    BlockbenchAdapter.saveSettings(settings);
+    BlockbenchAdapter.saveSettings(expandModelSettings(settings));
   }
 }
 
