@@ -1,4 +1,19 @@
 {
+	"particlecue_studio": {
+		"title": "ParticleCue Studio",
+		"author": "kltyton",
+		"description": "Unified Blockbench particle authoring for Snowstorm/Bedrock, LumenFX JSON, Unity/Niagara overrides, Photon .fx, and KBR 3D particles with portable project sharing and AnimCue/PAL integration.",
+		"icon": "icon.png",
+		"tags": ["Minecraft: Java Edition", "Minecraft: Bedrock Edition", "Animation"],
+		"version": "1.0.1",
+		"min_version": "5.0.0",
+		"variant": "desktop",
+		"await_loading": true,
+		"creation_date": "2026/11/27",
+		"website": "https://github.com/kltyton/ParticleCue-Studio/wiki",
+		"repository": "https://github.com/kltyton/ParticleCue-Studio",
+		"bug_tracker": "https://github.com/kltyton/ParticleCue-Studio/issues"
+	},
 	"palette_swap": {
 		"title": "Palette Swap",
 		"author": "Cmetanochkaa (Cmetanochka Creations)",
